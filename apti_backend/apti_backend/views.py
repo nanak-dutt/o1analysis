@@ -1,18 +1,13 @@
-from django.http.response import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 import requests
 
-from .getDBHandle import getDBConnection
-
-db = getDBConnection()
+from .handleDB import get_all_questions
 
 @api_view(['GET'])
 def testing_function(request):
-    uid='iMqfNi59SgXk4hz4nsVE'
-    user_ref = db.collection(u'user').document(uid).get().to_dict()
-    print(user_ref)
-    return user_ref
-
-	
+    questions = get_all_questions()
+    print(questions)
+    return JsonResponse(questions)
