@@ -19,26 +19,26 @@ def get_all_questions():
 
 
 
-def get_all_colleges():
-    clgs = db.collection('Colleges').get()
+def get_all_college():
+    clgs = db.collection('college').get()
     data=[]
     
     for clg in clgs:
         dict=clg.to_dict()
         data.append(dict)
         # print(dict)
-        # print(dict['CollegeKey'])
+        # print(dict['college_key'])
         
     return data
 
 
 
-def get_all_users():
+def get_all_user():
     
-    users = db.collection('Users').get()
+    user = db.collection('user').get()
     
     data=[]
-    for user in users:
+    for user in user:
         dict=user.to_dict()
         data.append(dict)
         # print(dict)
@@ -50,9 +50,9 @@ def get_all_users():
     
         
 
-def create_user(dict):
+def create_user(dict,id):
     try:
-        db.collection('Users').add(dict)
+        db.collection('user').document(id).set(dict)
         return 1;
     except:
         print("ERROR IN CREATE_USER")
@@ -60,14 +60,14 @@ def create_user(dict):
 
 
 
-def check_email_exist(email):
+def check_id_exist(id):
     try:
-        data = db.collection('Users').where("Email", "==", email).get()
+        user = db.collection('user').document(id).get()
 
-        if(len(data) == 0):
-            return 0
-        else:
+        if(user.exists):
             return 1
+        else:
+            return 0
 
     except:
         print("ERROR IN CHECK_USER_EXIST")
@@ -77,7 +77,7 @@ def check_email_exist(email):
 
 def check_college_exist(college):
     try:
-        data = db.collection('Colleges').where("CollegeName", "==", college).get()
+        data = db.collection('college').where("college_name", "==", college).get()
 
         if(len(data) == 0):
             return 0
@@ -89,16 +89,16 @@ def check_college_exist(college):
     
 
 
-def get_college_name(email):
+def get_college_name(id):
     try:
-        data = db.collection('Users').where("Email", "==", email).get()
+        user = db.collection('user').document(id).get()
         
-        if(len(data)==0):
-            return -1
+        if(user.exists):
+            user=user.to_dict()
+            return user['college']
         else:
-            for i in data:
-                dict=i.to_dict()
-                return dict['College']            
+            return 0
+
     except:
         print("ERROR IN GET_COLLEGE_Name")
         return -1
@@ -108,16 +108,33 @@ def get_college_name(email):
 
 def get_college_key(college):
     try:
-        data = db.collection('Colleges').where("CollegeName", "==", college).get()
+        data = db.collection('college').where("college_name", "==", college).get()
         
         if(len(data)==0):
-            return -1
+            return 0
         else:
             for i in data:
                 dict=i.to_dict()
-                return dict['CollegeKey']            
+                return dict['college_key']            
     except:
         print("ERROR IN GET_COLLEGE_KEY")
         return -1
+    
+    
+
+# db.collection('user').document('demouser7').set({
+# 	'name': 'Demo User7',
+# 	'email': 'demouser7@gmail.com',
+# 	'college': 'Yeshwantrao Chavan College of Engineering',
+#     'mobile': 7777777777
+# })
+
+# dict_ck = {
+# 	'college_name': 'Yeshwantrao Chavan College of Engineering',
+# 	'college_key': 'YCCE',
+# }
+# db.collection('college').add(dict_ck)
+
+
     
     

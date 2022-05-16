@@ -18,57 +18,79 @@ def testing_function(request):
 
 @api_view(['POST'])
 def register(request):
-    # print("lvl-1")
+    print("lvl-1")
     if(request.method == 'POST'):    
-        # print("lvl-2")    
+        print("lvl-2")    
         serializer = UserSerializer(data=request.data)
-        
-        # print("lvl-3")
-        
+
+        print("lvl-3")
+
         if(serializer.is_valid()):            
             data=serializer.data
-            
-            # print("lvl-4")
-            
+
+            print("lvl-4")
+
             print(data)
-        
-            Name = data['Name']
-            Email = data['Email']
-            College = data['College']
-            Key = data['Key']
+
+            name = data['name']
+            email = data['email']
+            college = data['college']
+            key = data['key']
+            mobile = data['mobile']
 
             dict = {
-                'Name': Name,
-                'Email': Email,
-                'College': College,
-                'Key': Key,
+                'name': name,
+                'email': email,
+                'college': college,
+                'mobile': mobile,
             }
 
-            if(check_email_exist(Email)==1):
+            id=""
+            str=email
+            n=len(email)
+            i=0
+            while(i<n and str[i]!='@'):
+                id+=str[i]
+                i=i+1
+
+            print(id)
+
+            if(i==n):
+                print("INVALID EMAIL")
+                messages.error(request, 'INVALID EMAIL',extra_tags='@email')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+                
+
+            if(check_id_exist(id)!=0):
                 messages.error(request, 'EMAIL ALREADY EXIST',extra_tags='email')
                 print("EMAIL ALREADY EXIST")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             
-            if(check_college_exist(College)==0):
-                messages.success(request, 'COLLEGE DOES NOT EXIST', extra_tags='college')
+            if(check_college_exist(college)!=1):
+                messages.success(request, 'college DOES NOT EXIST', extra_tags='college')
                 print("COLLEGE DOES NOT EXIST")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+
+            collegekey=get_college_key(college)
+
+            print(collegekey)
+            print(key)       
             
-            Password=get_college_key(College)
+            if(collegekey==-1):
+                print("KEY FINDING ERROR")
+                messages.success(request, 'WRONG KEY', extra_tags='key')
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
             
-            print(Password)
-            print(Key)                
-            
-            if(Key==Password):
+            if(key==collegekey):
                 print("MATCHED")
-                create_user(dict)
+                create_user(dict,id)
                 messages.success(request, 'REGISTERED SUCCESSFULLY', extra_tags='register')
                 return Response(status=status.HTTP_201_CREATED)
             else:
                 print("NOT MATCHED")
-                messages.success(request, 'WRONG KEY', extra_tags='key')
+                messages.success(request, 'WRONG key', extra_tags='key')
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            
+
         else:
             messages.error(request, 'INVALID DATA', extra_tags='create')
             return Response(status=status.HTTP_400_BAD_REQUEST)               
@@ -77,10 +99,11 @@ def register(request):
     return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 # {
-#     "Name": "DemoUser1",
-#     "Email": "demouser1@gmail.com",
-#     "College": "RCOEM",
-#     "Key": "RCOEM-123"
+# 	"name": "Demo User8",
+# 	"email": "demouser8@gmail.com",
+# 	"college": "Yeshwantrao Chavan College of Engineering",
+#     "key": "YCCE",
+#     "mobile": 8888888888
 # }
 
 @api_view(['POST'])
@@ -99,43 +122,63 @@ def login(request):
             
             print(data)
         
-            Email = data['Email']
-            College = data['College']
-            Key = data['Key']
+            email = data['email']
+            college = data['college']
+            key = data['key']
 
             dict = {
-                'Email': Email,
-                'College': College,
-                'Key': Key,
+                'email': email,
+                'college': college,
+                'key': key,
             }
+            
+            id=""
+            str=email
+            n=len(email)
+            i=0
+            while(i<n and str[i]!='@'):
+                id+=str[i]
+                i=i+1
 
-            if(check_email_exist(Email)==0):
+            print(id)
+
+            if(check_id_exist(id)!=1):
                 messages.error(request, 'EMAIL DOES NOT EXIST',extra_tags='email')
                 print("EMAIL DOES NOT EXIST")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             
-            clg=get_college_name(Email)
+            clg=get_college_name(id)
             print(clg)
-            print(College)
+            print(college)
             
-            if(clg!=College):
+            if(clg==0 or clg==-1):
+                print("NO COLLEGE FOUND")
+                messages.success(request, 'WRONG COLLEGE NAME', extra_tags='clg')
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
+            if(clg!=college):
                 messages.success(request, 'WRONG COLLEGE NAME', extra_tags='college')
-                print("WRONG COLLEGE NAME")
+                print("WRONG college name")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             
-            Password=get_college_key(College)
+            collegekey=get_college_key(college)
             
-            print(Password)
-            print(Key)                
+            print(collegekey)
+            print(key)           
             
-            if(Key==Password):
+            if(collegekey==-1):
+                print("KEY FINDING ERROR")
+                messages.success(request, 'WRONG KEY', extra_tags='key')
+                return Response(status=status.HTTP_401_UNAUTHORIZED)     
+            
+            if(key==collegekey):
                 print("MATCHED")
                 print("LOGGED IN SUCCESFULLY")
                 messages.success(request, 'LOGGED IN SUCCESSFULLY', extra_tags='login')
                 return Response(status=status.HTTP_201_CREATED)
             else:
                 print("NOT MATCHED")
-                messages.success(request, 'WRONG KEY', extra_tags='key')
+                messages.success(request, 'WRONG key', extra_tags='key')
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             
         else:
@@ -146,7 +189,7 @@ def login(request):
     return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 # {
-#     "Email": "demouser1@gmail.com",
-#     "College": "RCOEM",
-#     "Key": "RCOEM-123"
+#     "email": "demouser8@gmail.com",
+# 	"college": "Yeshwantrao Chavan College of Engineering",
+#     "key": "YCCE",
 # }
