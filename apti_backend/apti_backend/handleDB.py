@@ -79,9 +79,11 @@ def get_analysis(u_id,answers):
     datalist = db.collection("user").document(u_id).get()
     data=datalist.to_dict()
     
-    status=1
+    status=0
     if('Status' in data):
         status=data['Status']
+    else:
+        data['Status']=0
     
     print(status)
     #### DB Fields
@@ -94,6 +96,7 @@ def get_analysis(u_id,answers):
     if(status==0):
         db.collection('user').document(u_id).update({'Status': 1 })
         Questions = db.collection('ques_bank').get()
+        print("ENTERED")
         for quest in Questions:
             #print(question.to_dict())
             question=quest.to_dict()
@@ -285,6 +288,7 @@ def get_analysis(u_id,answers):
                         topic_wise_distribution[topic]={}
                         topic_wise_distribution[topic][subtopic]=[0,0,1]
         
+        print(level_wise_distribution)
         db.collection('user').document(u_id).update({'total_score':totaldb})
         db.collection('user').document(u_id).update({'scores':scores})
         db.collection('user').document(u_id).update({'level_wise_distribution':level_wise_distribution})
