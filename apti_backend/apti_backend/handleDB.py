@@ -71,5 +71,3 @@ def get_user_data(email):
 
 	return None
 
-# def getRankList(name):
-# 	user = 
