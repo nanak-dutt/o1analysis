@@ -8,13 +8,13 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 schema_view = get_schema_view(
-    openapi.Info(
-        title="Apti APIs",
-        default_version='v1',
-        description="Welcome to the world of coding",
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+	openapi.Info(
+		title="Apti APIs",
+		default_version='v1',
+		description="Welcome to the world of coding",
+	),
+	public=True,
+	permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [

@@ -6,13 +6,14 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 def get_all_questions():
-	data = {}
-	questions = db.collection("ques_bank").get()
+	questions = db.collection("ques_bank").stream()
+	data = []
 
 	for q in questions:
-		doc_id = q.id
-		document = db.document("ques_bank", doc_id).get().to_dict()
-		data[doc_id] = document
+		_id = q.id
+		doc = q.to_dict()
+		doc["id"] = _id
+		data.append(doc)
 
 	print(data)
 	return data

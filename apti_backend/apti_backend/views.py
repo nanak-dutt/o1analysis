@@ -3,9 +3,13 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 import requests
-import gspread
 
 from .handleDB import get_all_questions
+
+#imports gspread (mandatory)
+import gspread
+
+
 
 
 @api_view(['GET'])
@@ -36,7 +40,7 @@ def user_responses(request):
                 if n>=3:
                     ans[k] = str(j)
                     k = k+1
-    # to test wheater response dict is correct or not
+    #to test wheater response dict is correct or not
     # print(ans)
 
     #change here to return dict instead of http response
