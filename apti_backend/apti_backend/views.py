@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 import requests
 
-from .handleDB import get_all_questions, add_analytics_to_user, get_user_data
-from .serializers import EmailSerializer
+from .handleDB import *
+from .serializers import *
 
 """
 {
@@ -33,3 +33,25 @@ def analytics(request):
         return Response("Success")
     else:
         return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST','GET'])
+def ranklist(request):
+    serializer = RankListSerializer(data = request.data)
+    if serializer.is_valid():
+        college = serializer.data['college']
+        lst = get_college_ranklist(college)
+        dict = {
+            "ranklist" : lst
+        }
+        return Response(dict, status = status.HTTP_200_OK)
+    return Response(status = status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def globalranklist(request):
+    lst = get_global_ranklist()
+    dict = {
+        "ranklist" : lst
+    }
+    return Response(dict, status = status.HTTP_200_OK)
+    
+    

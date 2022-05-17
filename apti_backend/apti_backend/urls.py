@@ -21,5 +21,7 @@ urlpatterns = [
 	path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 	path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 	path('test/', views.testing_function),
-	path('analytics/', views.analytics)
+	path('analytics/', views.analytics),
+	path('ranklist/', views.ranklist),
+	path('globalranklist/', views.globalranklist),
 ]

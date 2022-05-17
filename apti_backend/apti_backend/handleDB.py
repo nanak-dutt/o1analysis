@@ -1,3 +1,4 @@
+from re import X
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -70,3 +71,70 @@ def get_user_data(email):
 		return {uid : udata}
 
 	return None
+
+def get_global_ranklist():
+	users_ref = db.collection(u'user')
+	query = users_ref.order_by(
+    u'total_score', direction=firestore.Query.DESCENDING).get()
+
+	lst=[]
+	for doc in query:
+		data = doc.to_dict()
+		lst.append(data)
+
+	# n=len(lst)
+
+	# for i in range(0,n):
+	# 	str=""
+	# 	rank="{}".format(i+1)
+	# 	str+=rank
+	# 	total_score="{}".format(lst[i]['total_score'])
+	# 	str+=" "
+	# 	str+=(lst[i]['name'])
+	# 	str+=" "
+	# 	str+=total_score
+	# 	str+=" "
+	# 	str+=(lst[i]['college'])
+	# 	print(str)
+
+	return lst
+
+
+def get_college_ranklist(college):
+	users_ref = db.collection(u'user')
+	query = users_ref.order_by(
+    u'total_score', direction=firestore.Query.DESCENDING).get()
+
+	lst=[]
+	x = 1
+	for doc in query:
+		data = doc.to_dict()
+		if(data['college']=="Shri Ramdeobaba College of Engineering and Management"):
+			dict = {
+				"rank": x,
+				"name":data['name'],
+				"marks":data['total_score'],
+			}
+			lst.append(dict)
+			x=x+1
+
+	# n=len(lst)
+
+	# for i in range(0,n):
+	# 	str=""
+	# 	rank="{}".format(i+1)
+	# 	str+=rank
+	# 	total_score="{}".format(lst[i]['total_score'])
+	# 	str+=" "
+	# 	str+=(lst[i]['name'])
+	# 	str+=" "
+	# 	str+=total_score
+	# 	str+=" "
+	# 	str+=(lst[i]['college'])
+	# 	print(str)
+
+	return lst
+
+# {
+# 	"college":  "Shri Ramdeobaba College of Engineering and Management"
+# }
