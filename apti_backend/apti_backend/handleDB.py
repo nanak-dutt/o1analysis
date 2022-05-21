@@ -16,7 +16,7 @@ def get_all_questions():
 		doc["id"] = q.id
 		data.append(doc)
 
-	data.sort(key = lambda x:x['no'])
+	print(data)
 	return data
 
 
