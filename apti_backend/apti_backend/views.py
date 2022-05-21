@@ -1,16 +1,11 @@
-<<<<<<< HEAD
 from os import stat
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse ,render
 
-=======
-from django.http import HttpResponse, JsonResponse,render
->>>>>>> fd54f060672fb8e02b92a77b5097403f57695021
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 import requests
 
-<<<<<<< HEAD
 from .handleDB import *
 from .serializers import *
 
@@ -19,16 +14,7 @@ from .serializers import *
 	"email": "parthdhorajiya2211@gmail.com"
 }
 """
-=======
 from .handleDB import get_all_questions
-
-#imports gspread (mandatory)
-import gspread
-
-
-
->>>>>>> fd54f060672fb8e02b92a77b5097403f57695021
-
 from .serializers import EmailSerializer
 
 
@@ -37,7 +23,6 @@ from .serializers import EmailSerializer
 # }
 
 @api_view(['GET'])
-<<<<<<< HEAD
 def question_bank(request):
 	questions = get_all_questions()
 	return Response({"data" : questions}, status = status.HTTP_200_OK)
@@ -340,34 +325,6 @@ def db(request):
     
 	return JsonResponse(returndata)
 
-
-#Function To Return a dictionary containing user responses
-@api_view(['GET'])
-def user_responses(request):
-	sa = gspread.service_account(filename="service_accounto1.json")
-	sh = sa.open("responses")
-	wks = sh.worksheet("Sheet1")
-
-	d = wks.get_all_values()
-
-	email = 'ritulrdeshmukh@gmail.com'  # put here the requested email id which will be obtained from frontend##
-	ans = {}
-	k = 1
-	m = 3
-	n = 0
-	for i in d:
-		for j in i:
-			if i[1] == email:
-				n = n + 1
-				if n>=3:
-					ans[k] = str(j)
-					k = k+1
-	#to test wheater response dict is correct or not
-	# print(ans)
-
-	#change here to return dict instead of http response
-	return HttpResponse("Hello")
-
 """
 {
 	"college" : "Shri Ramdeobaba College of Engineering and Management"
@@ -397,38 +354,3 @@ def globalranklist(request):
 	# 	return Response("Success")
 	# else:
     # 	return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
-=======
-def testing_function(request):
-    questions = get_all_questions()
-    print(questions)
-    return JsonResponse(questions)
-
-#Function To Return a dictionary containing user responses
-@api_view(['GET'])
-def user_responses(request):
-
-    sa = gspread.service_account(filename="service_accounto1.json")
-    sh = sa.open("responses")
-    wks = sh.worksheet("Sheet1")
-
-    d = wks.get_all_values()
-
-    email = 'ritulrdeshmukh@gmail.com'  # put here the requested email id which will be obtained from frontend##
-    ans = {}
-    k = 1
-    m = 3
-    n = 0
-    for i in d:
-        for j in i:
-            if i[1] == email:   
-                n = n + 1
-                if n>=3:
-                    ans[k] = str(j)
-                    k = k+1
-    #to test wheater response dict is correct or not
-    # print(ans)
-
-    #change here to return dict instead of http response
-    return HttpResponse("Hello")
-
->>>>>>> fd54f060672fb8e02b92a77b5097403f57695021
