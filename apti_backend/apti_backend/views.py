@@ -1,5 +1,5 @@
 from os import stat
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse ,render
 
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -14,7 +14,7 @@ from .serializers import *
 	"email": "parthdhorajiya2211@gmail.com"
 }
 """
-
+from .handleDB import get_all_questions
 from .serializers import EmailSerializer
 
 
@@ -324,34 +324,6 @@ def db(request):
 			}
     
 	return JsonResponse(returndata)
-
-
-#Function To Return a dictionary containing user responses
-@api_view(['GET'])
-def user_responses(request):
-	sa = gspread.service_account(filename="service_accounto1.json")
-	sh = sa.open("responses")
-	wks = sh.worksheet("Sheet1")
-
-	d = wks.get_all_values()
-
-	email = 'ritulrdeshmukh@gmail.com'  # put here the requested email id which will be obtained from frontend##
-	ans = {}
-	k = 1
-	m = 3
-	n = 0
-	for i in d:
-		for j in i:
-			if i[1] == email:
-				n = n + 1
-				if n>=3:
-					ans[k] = str(j)
-					k = k+1
-	#to test wheater response dict is correct or not
-	# print(ans)
-
-	#change here to return dict instead of http response
-	return HttpResponse("Hello")
 
 """
 {
