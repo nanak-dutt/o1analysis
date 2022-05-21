@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 import requests
 
+<<<<<<< HEAD
 from .handleDB import *
 from .serializers import *
 
@@ -14,6 +15,18 @@ from .serializers import *
 	"email": "parthdhorajiya2211@gmail.com"
 }
 """
+=======
+from .handleDB import get_all_questions, add_analytics_to_user, get_user_data, get_analysis, get_data_json
+from .serializers import EmailSerializer
+
+
+# {
+#     "email": "parthdhorajiya2211@gmail.com"
+# }
+
+
+
+>>>>>>> 172a66b37acd7535760c2e083f1189f89cda5a3c
 @api_view(['GET'])
 def question_bank(request):
 	questions = get_all_questions()
@@ -32,6 +45,7 @@ def analytics(request):
 
 		print(data)
 
+<<<<<<< HEAD
 		return Response(data)
 	else:
 		return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
@@ -371,3 +385,18 @@ def globalranklist(request):
 		"ranklist" : lst
 	}
 	return Response(data, status = status.HTTP_200_OK)
+=======
+        return Response("Success")
+    else:
+        return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def db(request):
+    u_id="demouser5"
+    subject='overall'
+    answers={1:'a',2:'b',3:'c',4:'c',5:'b',6:'b',7:'c',8:'a',9:'a',10:'b',11:'c',12:'c',13:'b',14:'b',15:'c',16:'a',17:'a',18:'b',19:'c',20:'d'}
+    data = get_analysis(u_id,answers)
+    data = get_data_json(subject,u_id)
+    
+    return JsonResponse(data)
+>>>>>>> 172a66b37acd7535760c2e083f1189f89cda5a3c
