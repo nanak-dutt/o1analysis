@@ -1,3 +1,4 @@
+from os import stat
 from django.http import HttpResponse, JsonResponse
 
 from rest_framework.decorators import api_view
@@ -13,6 +14,14 @@ from .serializers import *
 	"email": "parthdhorajiya2211@gmail.com"
 }
 """
+
+from .serializers import EmailSerializer
+
+
+# {
+#     "email": "parthdhorajiya2211@gmail.com"
+# }
+
 @api_view(['GET'])
 def question_bank(request):
 	questions = get_all_questions()
@@ -36,15 +45,15 @@ def analytics(request):
 		return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
 
 
-"""
-{
-	"name": "Demo User8",
-	"email": "demouser8@gmail.com",
-	"college": "Yeshwantrao Chavan College of Engineering",
-	"key": "YCCE",
-	"mobile": 8888888888
-}
-"""
+# """
+# {
+# 	"name": "Demo User8",
+# 	"email": "demouser8@gmail.com",
+# 	"college": "Yeshwantrao Chavan College of Engineering",
+# 	"key": "YCCE",
+# 	"mobile": 8888888888
+# }
+# """
 @api_view(['POST'])
 def register(request):
 	serializer = UserSerializer(data=request.data)
@@ -148,13 +157,173 @@ def login(request):
 
 @api_view(['GET'])
 def db(request):
-	u_id="demouser5"
-	subject='overall'
+	u_id="demouser6"
 	answers={1:'a',2:'b',3:'c',4:'c',5:'b',6:'b',7:'c',8:'a',9:'a',10:'b',11:'c',12:'c',13:'b',14:'b',15:'c',16:'a',17:'a',18:'b',19:'c',20:'d'}
-	data = get_analysis(u_id,answers)
-	data = get_data_json(subject,u_id)
+	
+    #handledb code
+    ### this is temporary answers as no answers are available
+	answers_temp={1:'a',2:'b',3:'c',4:'d',5:'a',6:'b',7:'c',8:'d',9:'a',10:'b',11:'c',12:'d',13:'a',14:'b',15:'c',16:'d',17:'a',18:'b',19:'c',20:'d'}
+	email=u_id+"@gmail.com"
+	data=get_user_data(email)
+	#print(data)
+	status=0
+	if('status' in data):
+		status=data['status']
+	else:
+		status=0
+	#print(data['Status'])
+    
 
-	return JsonResponse(data)
+	#### DB Fields
+	totaldb=0
+	scores={}
+	level_wise_distribution={}
+	topic_wise_distribution={}
+	plus=0
+
+
+	if(status==0):
+		status=1
+		Questions = get_all_questions()
+		for question in Questions:
+			#print(question.to_dict())
+			#question=quest.to_dict()
+			no=question['no']
+			topic=question['subject']
+			subtopic=question['topic']
+			corr=question['answer']
+			### temporary code
+			checkanswer='0'
+			if(no<=20):
+				corr=answers_temp[no]
+				checkanswer=answers[no]
+			diff=question['level']
+
+			#### Fields check
+			if not topic in scores:
+				scores[topic]=0
+			if not topic in level_wise_distribution:
+				level_wise_distribution[topic]={
+							"hard":[0,0,0],
+							"medium":[0,0,0],
+							"easy":[0,0,0]
+						}
+			if not topic in topic_wise_distribution:
+				topic_wise_distribution[topic]={}
+			if not topic in topic_wise_distribution[topic]:
+				topic_wise_distribution[topic][subtopic]=[0,0,0]
+    
+    
+			#### correct then
+			if(checkanswer==corr and no<=20):
+				# Update data with known key
+				#db.collection('persons').document("p1").update({"age": 50}) # field already exists
+				#db.collection('persons').document("p1").update({"age": firestore.Increment(2)}) # increment a field
+
+				if(diff=='easy'):
+					plus=2
+
+				if(diff=='medium'):
+					plus=4
+
+				if(diff=='hard'):
+					plus=6
+
+				level_wise_distribution[topic]['easy'][1]=level_wise_distribution[topic][diff][1]+1
+				topic_wise_distribution[topic][subtopic][1]=topic_wise_distribution[topic][subtopic][1]+1
+				totaldb=totaldb+plus
+				scores[topic]=scores[topic]+plus
+				level_wise_distribution[topic]['easy'][0]=level_wise_distribution[topic]['hard'][0]+plus
+				topic_wise_distribution[topic][subtopic][0]=topic_wise_distribution[topic][subtopic][0]+plus
+
+
+			elif(no<=20):
+				level_wise_distribution[topic]['easy'][2]=level_wise_distribution[topic][diff][2]+1
+				topic_wise_distribution[topic][subtopic][2]=topic_wise_distribution[topic][subtopic][2]+1
+
+		update_scored_db(totaldb,scores,level_wise_distribution,topic_wise_distribution,status,u_id)
+
+	else:
+		print("alredy exist")
+    
+	############# RETURNING JSON RESPONSE ///// ANALYSIS DATA
+ 
+ 
+	subject='overall'
+	data1=get_user_data(email)
+	namer=data1['name']
+	scores_subject=[]
+	subject1=[]
+	correct=[]
+	incorrect=[]
+	hard=0
+	medium=0
+	easy=0
+	total=0
+        
+	if(subject=='overall'):
+		
+		total=data1['total_score']
+		for sub in data1['level_wise_distribution']:
+			innerdata=data1['level_wise_distribution'][sub]
+			subject1.append(sub)
+			hard=hard+innerdata['hard'][0]
+			medium=medium+innerdata['medium'][0]
+			easy=easy+innerdata['easy'][0]
+			correct.append(innerdata['hard'][1]+innerdata['medium'][1]+innerdata['easy'][1])
+			incorrect.append(innerdata['hard'][2]+innerdata['medium'][2]+innerdata['easy'][2])
+			scores_subject.append(data1['scores'][sub])
+
+	else:
+		hard=data1['level_wise_distribution'][subject]['hard'][0]
+		medium=data1['level_wise_distribution'][subject]['medium'][0]
+		easy=data1['level_wise_distribution'][subject]['easy'][0]
+		total=hard+easy+medium
+		for topic in data1['topic_wise_distribution'][subject]:
+			subject1.append(topic)
+			innerdata=data1['topic_wise_distribution'][subject][topic]
+			correct.append(innerdata[1])
+			incorrect.append(innerdata[2])
+			scores_subject.append(innerdata[0])
+  
+
+  
+	returndata={
+				'name': namer,
+				'total': total,
+				'leetcode': {
+				'series': [hard, medium, easy],
+				'labels': ["Hard", "Medium", "Easy"],
+				},
+				'stackgraph': {
+				'series': [
+					{
+					'name': "Correct",
+					'data': correct,
+					},
+					{
+					'name': "Incorrect",
+					'data': incorrect,
+					},
+				],
+				'labels': subject1,
+				},
+				'linegraph': {
+				'labels': subject1,
+				'series': [
+					{
+					'name': "Subjects",
+					'data': scores_subject,
+					},
+				],
+				},
+				'piechart': {
+				'series': scores_subject,
+				'labels': subject1,
+				},
+			}
+    
+	return JsonResponse(returndata)
 
 
 #Function To Return a dictionary containing user responses
@@ -209,4 +378,7 @@ def globalranklist(request):
 	data = {
 		"ranklist" : lst
 	}
-	return Response(data, status = status.HTTP_200_OK)
+	# return Response(data, status = status.HTTP_200_OK)
+	# 	return Response("Success")
+	# else:
+    # 	return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
