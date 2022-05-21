@@ -178,3 +178,47 @@ def update_scored_db(totaldb,scores,level_wise_distribution,topic_wise_distribut
     db.collection('user').document(u_id).update({'scores':scores})
     db.collection('user').document(u_id).update({'level_wise_distribution':level_wise_distribution})
     db.collection('user').document(u_id).update({'topic_wise_distribution':topic_wise_distribution})
+
+def set_questions(request):
+	
+	sa = gspread.service_account()
+	sh = sa.open_by_url('https://docs.google.com/spreadsheets/d/1qExATJ3cdvzzv6vDIPqtRssx2QM4UnTBjXsqDfAVHho/edit?usp=sharing')
+	wks = sh.worksheet("Sheet1")
+
+	d = wks.get_all_records()
+
+	for i in d:
+		document_reference=db.collection('ques_bank').document()
+		document_reference.set(i)
+	
+
+def user_responses(uid):
+	
+	sa = gspread.service_account(filename="credentials.json")
+	sh = sa.open_by_url('https://docs.google.com/spreadsheets/d/1xygPuSLb4B4V3ps1SB9zWxXiADdZu_Hqx2YuluketEc/edit#gid=222477231')
+	wks = sh.worksheet("Sheet1")
+
+	d = wks.get_all_values()
+	ans = {}
+	k = 1
+	m = 3
+	n = 0
+	# uid = 'demouser1'
+	email = uid + "@gmail.com"
+	# print(email)
+	data= get_user_data(email)
+	print(data['email'])
+	
+	for i in d:
+		for j in i:
+			if i[1] == data['email']:
+				n = n + 1
+				if n>=3:
+					ans[k] = str(j)
+					k = k+1
+	#to test wheater response dict is correct or not
+	# print(ans)
+
+	answers_in_json = json.dumps(ans, indent = 3)
+	
+	return answers_in_json
