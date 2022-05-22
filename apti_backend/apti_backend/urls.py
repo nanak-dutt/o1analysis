@@ -33,6 +33,12 @@ urlpatterns = [
 	path('ranklist/college', views.ranklist),
 	path('ranklist/global', views.globalranklist),
 
+	# added to test gsheet data
+    # path('gs' , views.user_responses)
+	#path('test/', views.testing_function),
+	path('analytics/', views.analytics),
+    path('db',views.db),
+
     # added to test gsheet data
     path('gs' , views.fetch_user_responses)
 ]
