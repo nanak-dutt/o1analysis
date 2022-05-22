@@ -32,9 +32,6 @@ def get_user_answers():
             answers_temp[no]="wrong answer"
       
     return answers_temp
-<<<<<<< HEAD
-=======
-            
 
 def add_analytics_to_user(email, level, topics):
 	"""
@@ -93,7 +90,6 @@ def add_analytics_to_user(email, level, topics):
 
 	return True
 
->>>>>>> ac1a92a5f38218c378942c49773154fec69af7a4
 
 def get_user_data(email):
 	users = db.collection("user").where(u'email', u'==', email).get()

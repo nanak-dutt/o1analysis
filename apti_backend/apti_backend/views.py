@@ -177,10 +177,6 @@ def analytics(request):
 @api_view(['GET'])
 def db(request):
 	u_id="demouser7"
-<<<<<<< HEAD
-=======
-	
->>>>>>> ac1a92a5f38218c378942c49773154fec69af7a4
 	answers_temp=get_user_answers()
 	email=u_id+"@gmail.com"
 	data=get_user_data(email)
