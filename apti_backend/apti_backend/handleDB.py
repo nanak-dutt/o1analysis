@@ -223,3 +223,58 @@ def user_responses(uid):
     answers_in_json = json.dumps(ans, indent=3)
 
     return answers_in_json
+
+
+def leetcode_api(uid, subject):
+    
+    data = db.collection('user').document(uid).get()
+    data = data.to_dict()
+
+    arr_subjects = []
+    arr_scores = []
+
+    easyque_correct_count = 0
+    medque_correct_count = 0
+    hardque_correct_count = 0
+    if (subject == 'all'):
+        for key,value in data['level_wise_distribution'].items():
+            arr_subjects.append(key)
+            for key1,value1 in value.items():
+                if(key1 == 'easy'):
+                    easyque_correct_count = easyque_correct_count + value1[1]
+                if(key1 == 'medium'):
+                    medque_correct_count = medque_correct_count + value1[1]
+                if(key1 == 'hard'):
+                    hardque_correct_count = hardque_correct_count + value1[1]
+        
+        totalque_correct_count =  easyque_correct_count + medque_correct_count + hardque_correct_count    
+    else:
+        arr_subjects.append(subject)
+        for key,value in data['level_wise_distribution'].items():
+            if(key == subject):
+                for key1,value1 in value.items():
+                    if(key1 == 'easy'):
+                        easyque_correct_count = easyque_correct_count + value1[1]
+                    if(key1 == 'medium'):
+                        medque_correct_count = medque_correct_count + value1[1]
+                    if(key1 == 'hard'):
+                        hardque_correct_count = hardque_correct_count + value1[1]
+        
+        totalque_correct_count =  easyque_correct_count + medque_correct_count + hardque_correct_count
+
+    arr_scores.append(easyque_correct_count)
+    arr_scores.append(medque_correct_count)
+    arr_scores.append(hardque_correct_count)
+    arr_scores.append(totalque_correct_count)
+
+    arr_ezy_med_hard = ["easy","medium","hard","overall"]
+
+    leetcode = {
+        'correct_questions': arr_scores,
+        'labels':arr_ezy_med_hard,
+        'x-axis-labels' : arr_subjects,
+    }
+
+    leetcode_json = json.dumps(leetcode, indent = 4)
+    
+    return leetcode_json
