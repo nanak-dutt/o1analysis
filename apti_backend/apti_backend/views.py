@@ -157,12 +157,9 @@ def login(request):
 
 @api_view(['GET'])
 def db(request):
-	u_id="demouser6"
-	answers={1:'a',2:'b',3:'c',4:'c',5:'b',6:'b',7:'c',8:'a',9:'a',10:'b',11:'c',12:'c',13:'b',14:'b',15:'c',16:'a',17:'a',18:'b',19:'c',20:'d'}
+	u_id="demouser7"
 	
-    #handledb code
-    ### this is temporary answers as no answers are available
-	answers_temp={1:'a',2:'b',3:'c',4:'d',5:'a',6:'b',7:'c',8:'d',9:'a',10:'b',11:'c',12:'d',13:'a',14:'b',15:'c',16:'d',17:'a',18:'b',19:'c',20:'d'}
+	answers_temp=get_user_answers()
 	email=u_id+"@gmail.com"
 	data=get_user_data(email)
 	#print(data)
@@ -192,11 +189,6 @@ def db(request):
 			topic=question['subject']
 			subtopic=question['topic']
 			corr=question['answer']
-			### temporary code
-			checkanswer='0'
-			if(no<=20):
-				corr=answers_temp[no]
-				checkanswer=answers[no]
 			diff=question['level']
 
 			#### Fields check
@@ -215,7 +207,7 @@ def db(request):
     
     
 			#### correct then
-			if(checkanswer==corr and no<=20):
+			if(answers_temp[no]==corr):
 				# Update data with known key
 				#db.collection('persons').document("p1").update({"age": 50}) # field already exists
 				#db.collection('persons').document("p1").update({"age": firestore.Increment(2)}) # increment a field
@@ -237,7 +229,7 @@ def db(request):
 				topic_wise_distribution[topic][subtopic][0]=topic_wise_distribution[topic][subtopic][0]+plus
 
 
-			elif(no<=20):
+			else:
 				level_wise_distribution[topic]['easy'][2]=level_wise_distribution[topic][diff][2]+1
 				topic_wise_distribution[topic][subtopic][2]=topic_wise_distribution[topic][subtopic][2]+1
 

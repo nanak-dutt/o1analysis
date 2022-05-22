@@ -10,15 +10,28 @@ db = firestore.client()
 def get_all_questions():
 	questions = db.collection("ques_bank").stream()
 	data = []
-
 	for q in questions:
 		doc = q.to_dict()
 		doc["id"] = q.id
+
 		data.append(doc)
 
 	data.sort(key = lambda x:x['no'])
 	return data
 
+def get_user_answers():
+    questions= db.collection('ques_bank').stream()
+    answers_temp={}
+    for q in questions:
+        doc=q.to_dict()
+        no=doc['no']
+        corr=doc['answer']
+        answers_temp[no]=corr
+        if(no%4==0 or no%5==0):
+            answers_temp[no]="wrong answer"
+      
+    return answers_temp
+            
 
 def add_analytics_to_user(email, level, topics):
 	"""
