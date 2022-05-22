@@ -12,10 +12,10 @@ db = firestore.client()
 def get_all_questions():
 	questions = db.collection("ques_bank").stream()
 	data = []
-
 	for q in questions:
 		doc = q.to_dict()
 		doc["id"] = q.id
+
 		data.append(doc)
 
 	return data
@@ -32,6 +32,68 @@ def get_user_answers():
             answers_temp[no]="wrong answer"
       
     return answers_temp
+<<<<<<< HEAD
+=======
+            
+
+def add_analytics_to_user(email, level, topics):
+	"""
+	level =
+	{
+		"os": {
+			"hard": [3, 2, 1],
+			"medium": [3, 1, 2],
+			"easy": [3, 3, 0]
+		},
+		"dbms": {
+			"hard": [3, 1, 2],
+			"medium": [3, 1, 2],
+			"easy": [3, 2, 1]
+		},
+		"dsa": {
+			"hard": [3, 3, 0],
+			"medium": [3, 2, 1],
+			"easy": [3, 2, 1]
+		},
+		"cn": {
+			"hard": [3, 0, 3],
+			"medium": [3, 1, 2],
+			"easy": [3, 2, 1]
+		},
+		"oops": {
+			"hard": [3, 2, 1],
+			"medium": [3, 3, 0],
+			"easy": [3, 1, 2]
+		},
+		"verbal": {
+			"hard": [3, 2, 1],
+			"medium": [3, 3, 0],
+			"easy": [3, 1, 2]
+		},
+		"logical": {
+			"hard": [3, 2, 1],
+			"medium": [3, 3, 0],
+			"easy": [3, 1, 2]
+		},
+		"quantitative": {
+			"hard": [3, 2, 1],
+			"medium": [3, 3, 0],
+			"easy": [3, 1, 2]
+		}
+	}
+	"""
+	users = db.collection("user").where(u'email', u'==', email).get()
+
+	if len(users) > 0:
+		uid = users[0].id
+		db.collection("user").document(uid).update({
+			"level_wise": level,
+			"topic_wise": topics
+		})
+
+	return True
+
+>>>>>>> ac1a92a5f38218c378942c49773154fec69af7a4
 
 def get_user_data(email):
 	users = db.collection("user").where(u'email', u'==', email).get()
