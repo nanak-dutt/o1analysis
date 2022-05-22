@@ -1,3 +1,5 @@
+import gspread
+import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 from grpc import Status
@@ -16,66 +18,7 @@ def get_all_questions():
 		doc["id"] = q.id
 		data.append(doc)
 
-	print(data)
 	return data
-
-
-def add_analytics_to_user(email, level, topics):
-	"""
-	level =
-	{
-		"os": {
-			"hard": [3, 2, 1],
-			"medium": [3, 1, 2],
-			"easy": [3, 3, 0]
-		},
-		"dbms": {
-			"hard": [3, 1, 2],
-			"medium": [3, 1, 2],
-			"easy": [3, 2, 1]
-		},
-		"dsa": {
-			"hard": [3, 3, 0],
-			"medium": [3, 2, 1],
-			"easy": [3, 2, 1]
-		},
-		"cn": {
-			"hard": [3, 0, 3],
-			"medium": [3, 1, 2],
-			"easy": [3, 2, 1]
-		},
-		"oops": {
-			"hard": [3, 2, 1],
-			"medium": [3, 3, 0],
-			"easy": [3, 1, 2]
-		},
-		"verbal": {
-			"hard": [3, 2, 1],
-			"medium": [3, 3, 0],
-			"easy": [3, 1, 2]
-		},
-		"logical": {
-			"hard": [3, 2, 1],
-			"medium": [3, 3, 0],
-			"easy": [3, 1, 2]
-		},
-		"quantitative": {
-			"hard": [3, 2, 1],
-			"medium": [3, 3, 0],
-			"easy": [3, 1, 2]
-		}
-	}
-	"""
-	users = db.collection("user").where(u'email', u'==', email).get()
-
-	if len(users) > 0:
-		uid = users[0].id
-		db.collection("user").document(uid).update({
-			"level_wise": level,
-			"topic_wise": topics
-		})
-
-	return True
 
 
 def get_user_data(email):
@@ -155,6 +98,8 @@ def get_global_ranklist():
 	lst = []
 	for doc in query:
 		data = doc.to_dict()
+		data.pop("level_wise_distribution")
+		data.pop("topic_wise_distribution")
 		lst.append(data)
 
 	return lst
@@ -167,62 +112,71 @@ def get_college_ranklist(college):
 	lst = []
 	for doc in query:
 		data = doc.to_dict()
+		data.pop("level_wise_distribution")
+		data.pop("topic_wise_distribution")
+		data.pop("college")
 		lst.append(data)
 
 	return lst
 
 
-def update_scored_db(totaldb,scores,level_wise_distribution,topic_wise_distribution,status,u_id):
-    db.collection('user').document(u_id).update({'status':status})
-    db.collection('user').document(u_id).update({'total_score':totaldb})
-    db.collection('user').document(u_id).update({'scores':scores})
-    db.collection('user').document(u_id).update({'level_wise_distribution':level_wise_distribution})
-    db.collection('user').document(u_id).update({'topic_wise_distribution':topic_wise_distribution})
+def update_scored_db(totaldb, scores, level_wise_distribution, topic_wise_distribution, status, u_id):
+	db.collection('user').document(u_id).update({
+		'status': status,
+		'total_score': totaldb,
+		'scores': scores,
+		'level_wise_distribution': level_wise_distribution,
+		'topic_wise_distribution': topic_wise_distribution
+	})
+
 
 def set_questions(request):
+	sa = gspread.service_account(filename="credentials.json")
+	sh = sa.open_by_url(
+		'https://docs.google.com/spreadsheets/d/1qExATJ3cdvzzv6vDIPqtRssx2QM4UnTBjXsqDfAVHho/edit?usp=sharing')
+	wks = sh.worksheet("Sheet1")
 
-    sa = sa = gspread.service_account(filename="credentials.json")
-    sh = sa.open_by_url(
-        'https://docs.google.com/spreadsheets/d/1qExATJ3cdvzzv6vDIPqtRssx2QM4UnTBjXsqDfAVHho/edit?usp=sharing')
-    wks = sh.worksheet("Sheet1")
+	d = wks.get_all_records()
 
-    d = wks.get_all_records()
-
-    for i in d:
-        document_reference = db.collection('ques_bank').document()
-        document_reference.set(i)
+	for i in d:
+		document_reference = db.collection('ques_bank').document()
+		document_reference.set(i)
 
 
-def user_responses(uid):
+def get_user_responses(email):
+	sa = gspread.service_account(filename="credentials.json")
+	sh = sa.open_by_url(
+		'https://docs.google.com/spreadsheets/d/1xygPuSLb4B4V3ps1SB9zWxXiADdZu_Hqx2YuluketEc/edit#gid=222477231')
+	wks = sh.worksheet("Sheet1")
 
-    sa = gspread.service_account(filename="credentials.json")
-    sh = sa.open_by_url(
-        'https://docs.google.com/spreadsheets/d/1xygPuSLb4B4V3ps1SB9zWxXiADdZu_Hqx2YuluketEc/edit#gid=222477231')
-    wks = sh.worksheet("Sheet1")
+	d = wks.get_all_values()
+	for row in d:
+		if row[1] == email:
+			return row
 
-    d = wks.get_all_values()
-    ans = {}
-    k = 1
-    m = 3
-    n = 0
-    # uid = 'demouser1'
-    data = db.collection('user').document(uid).get()
-    data = data.to_dict()
-    # print(data['email'])
+	d = wks.get_all_values()
+	ans = {}
+	k = 1
+	m = 3
+	n = 0
+	# uid = 'demouser1'
+	data = db.collection('user').document(uid).get()
+	data = data.to_dict()
+	# print(data['email'])
 
-    for i in d:
-        for j in i:
-            if i[1] == data['email']:
-                n = n + 1
-                if n >= 3:
-                    ans[k] = str(j)
-                    k = k+1
-    # to test wheater response dict is correct or not
-    print(ans)
+	for i in d:
+		for j in i:
+			if i[1] == data['email']:
+				n = n + 1
+				if n >= 3:
+					ans[k] = str(j)
+					k = k+1
+	# to test wheater response dict is correct or not
+	print(ans)
 
-    answers_in_json = json.dumps(ans, indent=3)
+	answers_in_json = json.dumps(ans, indent=3)
 
-    return answers_in_json
+	return answers_in_json
 
 
 def leetcode_api(uid, subject):

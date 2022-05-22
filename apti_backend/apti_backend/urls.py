@@ -20,12 +20,12 @@ schema_view = get_schema_view(
 urlpatterns = [
 	path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 	path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
 	path('quesbank/', views.question_bank),
 
 	# authentication - register & login
 	path('auth/register/', views.register),
     path('auth/login/', views.login),
-
 
 	path('db',views.db),
 
@@ -39,4 +39,6 @@ urlpatterns = [
 	path('analytics/', views.analytics),
     path('db',views.db),
 
+    # added to test gsheet data
+    path('gs' , views.fetch_user_responses)
 ]
