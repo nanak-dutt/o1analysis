@@ -174,13 +174,27 @@ def analytics(request):
 		return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-def db(request):
-	u_id="demouser7"
+@api_view(['POST'])
+def get_test_analysis(request):
+	"""
+	{
+		"email": "demouser7@gmail.com",
+		"subject_frontend":"overall"
+	}
+    """
+	serializer = analysisSerializer(data = request.data)
+	if(serializer.is_valid()) :
+		email=serializer.data['email']
+		subject_frontend=serializer.data['subject_frontend']
 	answers_temp=get_user_answers()
-	email=u_id+"@gmail.com"
+	u_id=""
+	for str in email:
+		if(str=='@'):
+			break;
+		else:
+			u_id=u_id+str
+	#email=u_id+"@gmail.com"
 	data=get_user_data(email)
-	#print(data)
 	status=0
 	if('status' in data):
 		status=data['status']
@@ -259,7 +273,7 @@ def db(request):
 	############# RETURNING JSON RESPONSE ///// ANALYSIS DATA
  
  
-	subject='overall'
+	subject=subject_frontend
 	data1=get_user_data(email)
 	namer=data1['name']
 	scores_subject=[]
@@ -333,7 +347,7 @@ def db(request):
 				},
 			}
     
-	return JsonResponse(returndata)
+	return Response(returndata)
 
 
 @api_view(['POST'])
