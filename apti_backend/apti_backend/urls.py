@@ -43,4 +43,5 @@ urlpatterns = [
 
     # added to test gsheet data
     path('gs' , views.fetch_user_responses),
+	path('college_list' , views.college_list),
 ]

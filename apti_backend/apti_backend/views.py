@@ -374,4 +374,4 @@ def college_list(request):
     clg_dict={"clg_names":clg_list}
     #returning dict to json
     json_object = json.dumps(clg_dict, indent = 4) 
-    return json_object
+    return Response(json_object , status = status.HTTP_200_OK)
