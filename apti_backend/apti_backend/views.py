@@ -371,7 +371,13 @@ def college_list(request):
         c=c.to_dict()
         clg_list.append(c['college_name'])
     clg_list=sorted(clg_list)
-    clg_dict={"clg_names":clg_list}
+    n=len(clg_list)
+    
+    indx = list(range(1,n+1))
+    
+    temp=zip(indx,clg_list)
+    clg_dict=dict(temp)
+    
     #returning dict to json
-    json_object = json.dumps(clg_dict, indent = 4) 
+    json_object = json.dumps(clg_dict)#, indent = 4) 
     return Response(json_object , status = status.HTTP_200_OK)
