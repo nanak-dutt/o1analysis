@@ -362,3 +362,17 @@ def fetch_user_responses(request):
 		data = serializer.data
 		user_responses = get_user_responses(data['email'])
 		return Response(user_responses, status = status.HTTP_200_OK)
+
+# @api_view(['POST'])
+# def college_list(request):
+#     clg_listdb = db.collection('college').get()
+#     clg_list=[]
+#     for c in clg_listdb:
+#         c=c.to_dict()
+#         clg_list.append(c['college_name'])
+#     clg_list=sorted(clg_list)
+#     print(clg_list)
+#     clg_dict={"clg_names":clg_list}
+#     #returning dict to json
+#     json_object = json.dumps(clg_dict, indent = 4) 
+#     print(json_object)
