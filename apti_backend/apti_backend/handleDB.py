@@ -30,7 +30,6 @@ def get_user_answers():
         answers_temp[no]=corr
         if(no%4==0 or no%5==0):
             answers_temp[no]="wrong answer"
-      
     return answers_temp
 
 def add_analytics_to_user(email, level, topics):
