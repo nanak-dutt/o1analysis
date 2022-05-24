@@ -6,6 +6,8 @@ from . import views
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from django.contrib.auth import views as auth_views
+# from myapp import views as myapp_views
 
 schema_view = get_schema_view(
 	openapi.Info(
@@ -27,7 +29,7 @@ urlpatterns = [
 	path('auth/register/', views.register),
     path('auth/login/', views.login),
 
-	path('db',views.db),
+	path('get_test_analysis',views.get_test_analysis),
 
 	path('analytics/', views.analytics),
 	path('ranklist/college', views.ranklist),
@@ -37,8 +39,8 @@ urlpatterns = [
     # path('gs' , views.user_responses)
 	#path('test/', views.testing_function),
 	path('analytics/', views.analytics),
-    path('get_test_analysis',views.db),
+    path('get_test_analysis',views.get_test_analysis),
 
     # added to test gsheet data
-    path('gs' , views.fetch_user_responses)
+    path('gs' , views.fetch_user_responses),
 ]
