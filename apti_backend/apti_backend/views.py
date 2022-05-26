@@ -107,12 +107,9 @@ def register(request):
 
 @api_view(['POST'])
 def login(request):
-    print("0")
     serializer = UserLoginSerializer(data=request.data)
-    print("1")
     
     if serializer.is_valid():
-        print("2")
         
         data = serializer.data
         email = data['email']
