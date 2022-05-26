@@ -54,6 +54,7 @@ def analytics(request):
 # 	"mobile": 8888888888
 # }
 # """
+
 @api_view(['POST'])
 def register(request):
 	serializer = UserSerializer(data=request.data)
@@ -98,68 +99,42 @@ def register(request):
 		return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
 
 
-"""
-{
-	"email": "demouser8@gmail.com",
-	"college": "Yeshwantrao Chavan College of Engineering",
-	"key": "YCCE"
-}
-"""
+# """
+# {
+# 	"email": "demouser8@gmail.com"
+# }
+# """
+
 @api_view(['POST'])
 def login(request):
-	serializer = UserLoginSerializer(data=request.data)
-
-	if serializer.is_valid():
-		data = serializer.data
-
-		email = data['email']
-		college = data['college']
-		key = data['key']
-
-		dict = {
-			'email': email,
-			'college': college,
-			'key': key,
-		}
-
-		user_id = email.split("@")[0]
-
-		if (check_id_exist(user_id)!=1):
-			print("EMAIL DOES NOT EXIST")
-			return Response("EMAIL DOES NOT EXIST", status=status.HTTP_401_UNAUTHORIZED)
-
-		clg = get_college_name(user_id)
-
-		if (clg==0 or clg==-1):
-			print("WRONG COLLEGE NAME")
-			return Response("WRONG COLLEGE NAME", status=status.HTTP_401_UNAUTHORIZED)
-
-		if (clg!=college):
-			print("WRONG COLLEGE NAME")
-			return Response("WRONG COLLEGE NAME", status=status.HTTP_401_UNAUTHORIZED)
-
-		collegekey = get_college_key(college)
-
-		if(collegekey==-1):
-			print("KEY FINDING ERROR")
-			return Response("KEY FINDING ERROR", status=status.HTTP_401_UNAUTHORIZED)
-
-		if(key==collegekey):
-			print("LOGGED IN SUCCESFULLY")
-			return Response("LOGGED IN SUCCESSFULLY", status=status.HTTP_200_OK)
-		else:
-			print("NOT MATCHED")
-			return Response("WRONG key", status=status.HTTP_401_UNAUTHORIZED)
-
-	else:
-		return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
+    print("0")
+    serializer = UserLoginSerializer(data=request.data)
+    print("1")
+    
+    if serializer.is_valid():
+        print("2")
+        
+        data = serializer.data
+        email = data['email']
+        
+        user_id = email.split("@")[0]
+        
+        if (check_id_exist(user_id)!=1):
+            print("EMAIL DOES NOT EXIST")
+            return Response("EMAIL DOES NOT EXIST", status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            print("LOGGED IN SUCCESFULLY")
+            return Response("LOGGED IN SUCCESSFULLY", status=status.HTTP_200_OK)
+    else:
+        print("INVALID DATA")
+        return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 def db(request):
 	u_id="demouser6"
 	answers={1:'a',2:'b',3:'c',4:'c',5:'b',6:'b',7:'c',8:'a',9:'a',10:'b',11:'c',12:'c',13:'b',14:'b',15:'c',16:'a',17:'a',18:'b',19:'c',20:'d'}
-	
+
     #handledb code
     ### this is temporary answers as no answers are available
 	answers_temp={1:'a',2:'b',3:'c',4:'d',5:'a',6:'b',7:'c',8:'d',9:'a',10:'b',11:'c',12:'d',13:'a',14:'b',15:'c',16:'d',17:'a',18:'b',19:'c',20:'d'}
@@ -172,7 +147,7 @@ def db(request):
 	else:
 		status=0
 	#print(data['Status'])
-    
+
 
 	#### DB Fields
 	totaldb=0
@@ -212,8 +187,8 @@ def db(request):
 				topic_wise_distribution[topic]={}
 			if not topic in topic_wise_distribution[topic]:
 				topic_wise_distribution[topic][subtopic]=[0,0,0]
-    
-    
+
+
 			#### correct then
 			if(checkanswer==corr and no<=20):
 				# Update data with known key
@@ -245,10 +220,10 @@ def db(request):
 
 	else:
 		print("alredy exist")
-    
+
 	############# RETURNING JSON RESPONSE ///// ANALYSIS DATA
- 
- 
+
+
 	subject='overall'
 	data1=get_user_data(email)
 	namer=data1['name']
@@ -260,9 +235,9 @@ def db(request):
 	medium=0
 	easy=0
 	total=0
-        
+
 	if(subject=='overall'):
-		
+
 		total=data1['total_score']
 		for sub in data1['level_wise_distribution']:
 			innerdata=data1['level_wise_distribution'][sub]
@@ -285,9 +260,8 @@ def db(request):
 			correct.append(innerdata[1])
 			incorrect.append(innerdata[2])
 			scores_subject.append(innerdata[0])
-  
 
-  
+
 	returndata={
 				'name': namer,
 				'total': total,
@@ -322,7 +296,7 @@ def db(request):
 				'labels': subject1,
 				},
 			}
-    
+
 	return JsonResponse(returndata)
 
 
@@ -378,7 +352,7 @@ def globalranklist(request):
 	data = {
 		"ranklist" : lst
 	}
-	# return Response(data, status = status.HTTP_200_OK)
+	return Response(data, status = status.HTTP_200_OK)
 	# 	return Response("Success")
 	# else:
     # 	return Response("Invalid data", status = status.HTTP_400_BAD_REQUEST)

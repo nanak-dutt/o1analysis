@@ -12,8 +12,6 @@ class UserSerializer(serializers.Serializer):
 
 class UserLoginSerializer(serializers.Serializer):
 	email = serializers.EmailField()
-	college = serializers.CharField(max_length = 100)
-	key = serializers.CharField(max_length=100)
 
 class CollegeRankListSerializer(serializers.Serializer):
     college = serializers.CharField(max_length=100)
