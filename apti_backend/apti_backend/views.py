@@ -189,7 +189,7 @@ def get_test_analysis(request):
 	answers_temp=get_user_answers()
 	u_id=""
 	for str in email:
-		if(str=='@'):
+		if(str=='@'):	
 			break;
 		else:
 			u_id=u_id+str
@@ -284,6 +284,24 @@ def get_test_analysis(request):
 	medium=0
 	easy=0
 	total=0
+
+	true_subject = ""
+	if(subject == 'overall'):
+		true_subject = subject
+	elif subject == 'cn':
+		true_subject = "Computer NetWorks"
+	elif subject == 'os':
+		true_subject = "Operating Systems"
+	elif subject == 'dbms':
+		true_subject = "Database Management System"
+	elif subject == 'dsa':
+		true_subject = "Data Structures and Algorithms"
+	elif subject == 'oops':
+		true_subject = "Object Oriented Programming"
+	else:
+		true_subject = subject
+	
+	
         
 	if(subject=='overall'):
 		
@@ -315,6 +333,7 @@ def get_test_analysis(request):
 	returndata={
 				'name': namer,
 				'total': total,
+				'subject' : true_subject,
 				'leetcode': {
 				'series': [hard, medium, easy],
 				'labels': ["Hard", "Medium", "Easy"],
