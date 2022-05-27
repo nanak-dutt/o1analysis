@@ -394,3 +394,57 @@ def college_list(request):
     #returning dict to json
     # json_object = json.dumps(clg_dict, indent = 4) 
     return Response(clg_dict , status = status.HTTP_200_OK)
+
+@api_view(['POST'])
+def weakest_topics(request):
+    """
+	{
+		"email" : "demouser7@gmail.com"
+	}
+	"""
+    serializer = EmailSerializer(data = request.data)
+    if serializer.is_valid():
+        ser_data = serializer.data
+        email = ser_data['email']
+        user_id = email.split("@")[0]
+
+        if check_id_exist(user_id)!=1:
+            print("EMAIL DOES NOT EXIST")
+            return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
+
+        user_data=get_user_data(email)
+
+        subjects=user_data["topic_wise_distribution"]
+
+        subject_list=[]
+        topic_list=[]
+
+        for subject in subjects.keys():
+
+            subject_list.append(subject)            
+            topics=subjects[subject]
+
+            var=999999
+            weak_topic=""
+
+            for topic in topics.keys():
+                mark=topics[topic][0]
+                if(mark<var):
+                    var=mark
+                    weak_topic=topic
+
+            topic_list.append(weak_topic)
+
+        print(subject_list)
+        print(topic_list)  
+
+        dict={}
+
+        sz=len(subject_list)
+
+        for i in range(0,sz):
+            dict.update({subject_list[i]:topic_list[i]})
+
+        return Response(dict, status = status.HTTP_200_OK)
+
+    return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status = status.HTTP_400_BAD_REQUEST)
