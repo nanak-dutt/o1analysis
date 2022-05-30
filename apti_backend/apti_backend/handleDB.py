@@ -195,7 +195,7 @@ def get_college_ranklist(college):
 		data.pop("college")
 		lst.append(data)
 	
-	i = 1d
+	i = 1
 	actual_ranklist = {}
 	for scores in lst:
 		actual_ranklist[i] = []
