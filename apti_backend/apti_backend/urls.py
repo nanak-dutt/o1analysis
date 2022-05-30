@@ -46,4 +46,5 @@ urlpatterns = [
 	path('college_list' , views.college_list),
 
 	path('weak_topic' , views.weakest_topics),
+	path('get_user_ranklit' , views.get_user_ranklist_data),
 ]
