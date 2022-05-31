@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 import requests
+import itertools
 
 from .handleDB import *
 from .serializers import *
@@ -322,6 +323,13 @@ def get_test_analysis(request):
             incorrect.append(innerdata[2])
             scores_subject.append(innerdata[0])
 
+    Negative_Incorrects = []
+    for i in incorrect:
+        Negative_Incorrects.append(-1 * i)
+
+    # print(incorrect)
+    # print(Negative_Incorrects)
+
     returndata = {
         'name': namer,
         'total': total,
@@ -338,7 +346,7 @@ def get_test_analysis(request):
                 },
                 {
                     'name': "Incorrect",
-                    'data': incorrect,
+                    'data': Negative_Incorrects,
                 },
             ],
             'labels': subject1,
@@ -448,26 +456,88 @@ def searching_rank(ranklist, email):  # iterating through the entire list to fet
     i = 1
     rank = -1
     for data in ranklist:
-        l1 = ranklist[i]
+        l1 = ranklist[data]
         for p in l1:
+            # print(p)
             if p['email'] == email:
                 rank = i
         i += 1
 
     return rank
 
+def Sort_Tuple(tup):
+    return(sorted(tup, key = lambda x: x[0])) 
+
+def generate_ranklist_for_each_subject(email, college):
+    data = get_user_data(email)
+    subject_list = []
+    subject_rank = {
+        'CN': {
+            'score': [],
+            'email': []
+        },
+        'OS': {
+            'score': [],
+            'email': []
+        },
+        'DBMS': {
+            'score': [],
+            'email': []
+        },
+        'OOPS': {
+            'score': [],
+            'email': []
+        },
+        'LOGICAL': {
+            'score': [],
+            'email': []
+        },
+        'QUANTITATIVE': {
+            'score': [],
+            'email': []
+        },
+        'DSA': {
+            'score': [],
+            'email': []
+        },
+        'VERBAL': {
+            'score': [],
+            'email': []
+        },
+    }
+    for subjects in data['level_wise_distribution']:
+        subject_list.append(subjects.upper())
+
+    global_ranklist = get_global_ranklist()
+    college_ranklist = get_college_ranklist(college)
+
+    for i in global_ranklist:
+        for fields in global_ranklist[i]:
+            lst_score = fields['scores']
+            actual_list = {'CN': 0, 'OS': 0, 'DBMS': 0, 'OOPS': 0, 'DSA': 0, 'LOGICAL': 0, 'QUANTITATIVE': 0,
+                           'VERBAL': 0}
+            for key in lst_score:
+                actual_list[key.upper()] = lst_score[key]
+
+            for subject_name in subject_list:
+                subject_rank[subject_name]['score'].append(actual_list[subject_name])
+                subject_rank[subject_name]['email'].append(fields['email'])
+
+    return (subject_rank)
+
 
 @api_view(['POST'])
 def get_user_ranklist_data(request):
     """
     {
-        "email" : "demouser7@gmail.com"
+        "email" : "demouser7@gmail.com",
+        "rank_subject" : "overall"
     }
     """
-    serializer = EmailSerializer(data=request.data)
+    serializer = ranklistSerializer(data=request.data)
     if serializer.is_valid():
-        serialized_data = serializer.data
-        email = serialized_data['email']
+        email = serializer.data['email']
+        rank_subject = serializer.data['rank_subject']
         user_id = email.split("@")[0]
 
         if check_id_exist(user_id) == 1:
@@ -480,13 +550,51 @@ def get_user_ranklist_data(request):
             college_rank = searching_rank(user_college_ranklist, email)
             global_rank = searching_rank(user_global_ranklist, email)
 
-            user_ranklist_data = {
-                'college_rank': college_rank,
-                'global_rank': global_rank,
-                'global_list': user_global_ranklist,
-                'college_list': user_college_ranklist,
-            }
-            return Response(user_ranklist_data, status=status.HTTP_200_OK)
+            subject_wise_rankList = generate_ranklist_for_each_subject(email, user_college)
+            subject = rank_subject
+            if subject == "overall": 
+                user_ranklist_data = {
+                    'subject' : subject,
+                    'college_name': user_college,
+                    'college_rank': college_rank,
+                    'global_rank': global_rank,
+                    'global_list': user_global_ranklist,
+                    'college_list': user_college_ranklist,
+                }
+                return Response(user_ranklist_data, status=status.HTTP_200_OK)
+            
+            else:
+                subject_rank_list = list((zip(subject_wise_rankList[subject.upper()]['score'] , zip(subject_wise_rankList[subject.upper()]['email']))))
+                Sort_Tuple(subject_rank_list)
+                # subject_rank = subject_rank_calculator(subject_rank_list)
+                print(subject_rank_list)
+                new_list = Sort_Tuple(subject_rank_list)
+                new_list.reverse()
+                subject_rank_list = new_list
+
+                subject_rank_dict = {}
+                for i in range(1 , len(subject_rank_list) + 1):
+                    subject_rank_dict[i] = {'score' : 0 , 'email' : ""}
+
+                i = 1
+                global_subject_rank = -1
+                for it in subject_rank_list:
+                    subject_rank_dict[i] = {'score' : it[0] , 'email' : it[1][0]}
+                    if( it[1][0] == email):
+                        global_subject_rank = i
+                    i+=1
+
+                user_ranklist_data = {
+                    'subject': subject,
+                    'college_name': user_college,
+                    'college_rank': college_rank,
+                    'global_rank': global_rank,
+                    'global_subject_rank': global_subject_rank,
+                    'subject_rank_list': subject_rank_dict,
+                    'global_list': user_global_ranklist,
+                    'college_list': user_college_ranklist,
+                }
+                return Response(user_ranklist_data, status=status.HTTP_200_OK)
 
         print("EMAIL DOES NOT EXIST")
         return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
