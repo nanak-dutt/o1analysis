@@ -525,6 +525,23 @@ def generate_ranklist_for_each_subject(email, college):
 
     return (subject_rank)
 
+def helper(actual_list , email , subject):
+    i = 1
+    score = -1
+    for data in actual_list:
+        l1 = actual_list[data][0]
+        if l1['email'] == email:
+            if subject == "OVERALL":
+                score = l1['total_score']
+            else:
+                if subject.lower() not in l1['scores']:
+                    score = 0
+                else:
+                    score = l1['scores'][subject.lower()]
+
+    return score
+
+
 
 @api_view(['POST'])
 def get_user_ranklist_data(request):
@@ -547,27 +564,43 @@ def get_user_ranklist_data(request):
             user_global_ranklist = get_global_ranklist()  # fetching global Rank-list
             user_college_ranklist = get_college_ranklist(user_college)  # fetching college Rank-list
 
+
+
             college_rank = searching_rank(user_college_ranklist, email)
             global_rank = searching_rank(user_global_ranklist, email)
 
             subject_wise_rankList = generate_ranklist_for_each_subject(email, user_college)
             subject = rank_subject
+
+            actual_list = user_college_ranklist
+            actual_global_list = user_global_ranklist
+            # actual_list['subject_score'] = 0
+            # print(actual_list)
+
+            added_score = helper(actual_list , email , subject.upper())
+            actual_list['subject_score'] = added_score
+            actual_list['user_college'] = user_college
+
+            actual_global_list['subject_score'] = added_score
+            actual_global_list['user_college'] = user_college
+
+
+
             if subject == "overall": 
+                # actual_list['subject_score'] = user_college_ranklist['total_score']
                 user_ranklist_data = {
                     'subject' : subject,
                     'college_name': user_college,
                     'college_rank': college_rank,
                     'global_rank': global_rank,
-                    'global_list': user_global_ranklist,
-                    'college_list': user_college_ranklist,
+                    'global_list': actual_global_list,
+                    'college_list': actual_list,
                 }
-                return Response(user_ranklist_data, status=status.HTTP_200_OK)
-            
+                return Response(user_ranklist_data, status=status.HTTP_200_OK)     
             else:
                 subject_rank_list = list((zip(subject_wise_rankList[subject.upper()]['score'] , zip(subject_wise_rankList[subject.upper()]['email']))))
                 Sort_Tuple(subject_rank_list)
                 # subject_rank = subject_rank_calculator(subject_rank_list)
-                print(subject_rank_list)
                 new_list = Sort_Tuple(subject_rank_list)
                 new_list.reverse()
                 subject_rank_list = new_list
@@ -578,21 +611,24 @@ def get_user_ranklist_data(request):
 
                 i = 1
                 global_subject_rank = -1
+                subject_marks_user = -1
                 for it in subject_rank_list:
                     subject_rank_dict[i] = {'score' : it[0] , 'email' : it[1][0]}
                     if( it[1][0] == email):
                         global_subject_rank = i
+                        subject_marks_user = it[0]
                     i+=1
 
                 user_ranklist_data = {
                     'subject': subject,
                     'college_name': user_college,
+                    'score': subject_marks_user,
                     'college_rank': college_rank,
                     'global_rank': global_rank,
                     'global_subject_rank': global_subject_rank,
-                    'subject_rank_list': subject_rank_dict,
-                    'global_list': user_global_ranklist,
-                    'college_list': user_college_ranklist,
+                    'subject_rank_list': subject_rank_dict, 
+                    'global_list': actual_global_list,
+                    'college_list': actual_list,
                 }
                 return Response(user_ranklist_data, status=status.HTTP_200_OK)
 
