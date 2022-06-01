@@ -598,9 +598,8 @@ def get_user_ranklist_data(request):
 
             subject_rank_dict_G = generate_list(subject_wise_rankListG , subject , email)
             subject_rank_dict_C = generate_list(subject_wise_rankListC , subject , email)
-            if subject == "overall": 
-                # actual_list['subject_score'] = user_college_ranklist['total_score']
-                user_ranklist_data = {
+           
+            user_ranklist_data = {
                     'subject' : subject,
                     'college_name': user_college,
                     'college_rank': college_rank,
@@ -608,19 +607,7 @@ def get_user_ranklist_data(request):
                     'global_list': subject_rank_dict_G,
                     'college_list': subject_rank_dict_C,
                 }
-                return Response(user_ranklist_data, status=status.HTTP_200_OK)     
-            else:
-                user_ranklist_data = {
-                    'subject': subject,
-                    'college_name': user_college,
-                    'college_rank': college_rank,
-                    'global_rank': global_rank,
-                    # 'global_subject_rank': global_subject_rank,
-                    'global_list': subject_rank_dict_G,
-                    'college_list': subject_rank_dict_C,
-                }
-                return Response(user_ranklist_data, status=status.HTTP_200_OK)
-
+            return Response(user_ranklist_data, status=status.HTTP_200_OK)     
         print("EMAIL DOES NOT EXIST")
         return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
 
