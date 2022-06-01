@@ -468,7 +468,7 @@ def searching_rank(ranklist, email):  # iterating through the entire list to fet
 def Sort_Tuple(tup):
     return(sorted(tup, key = lambda x: x[0])) 
 
-def generate_ranklist_for_each_subject(email, college):
+def generate_ranklist_for_each_subject(email, college , global_ranklist):
     data = get_user_data(email)
     subject_list = []
     subject_rank = {
@@ -504,20 +504,27 @@ def generate_ranklist_for_each_subject(email, college):
             'score': [],
             'email': []
         },
+        'OVERALL': {
+            'score': [],
+            'email': []
+        },
     }
     for subjects in data['level_wise_distribution']:
         subject_list.append(subjects.upper())
 
-    global_ranklist = get_global_ranklist()
-    college_ranklist = get_college_ranklist(college)
+    subject_list.append("OVERALL")
+
 
     for i in global_ranklist:
         for fields in global_ranklist[i]:
             lst_score = fields['scores']
             actual_list = {'CN': 0, 'OS': 0, 'DBMS': 0, 'OOPS': 0, 'DSA': 0, 'LOGICAL': 0, 'QUANTITATIVE': 0,
-                           'VERBAL': 0}
+                           'VERBAL': 0 , 'OVERALL' : 0}
             for key in lst_score:
                 actual_list[key.upper()] = lst_score[key]
+
+           
+            actual_list["OVERALL"] = fields['total_score']
 
             for subject_name in subject_list:
                 subject_rank[subject_name]['score'].append(actual_list[subject_name])
@@ -525,22 +532,37 @@ def generate_ranklist_for_each_subject(email, college):
 
     return (subject_rank)
 
-def helper(actual_list , email , subject):
+def generate_list(subject_wise_rankListG , subject , email):
+    subject_rank_list = list((zip(subject_wise_rankListG[subject.upper()]['score'] , zip(subject_wise_rankListG[subject.upper()]['email']))))
+    Sort_Tuple(subject_rank_list)
+    new_list = Sort_Tuple(subject_rank_list)
+    new_list.reverse()
+    subject_rank_list = new_list
+
+    subject_rank_dict = {}
+    for i in range(1 , len(subject_rank_list) + 1):
+        subject_rank_dict[i] = {'score' : 0 , 'email' : "" }
+
     i = 1
-    score = -1
-    for data in actual_list:
-        l1 = actual_list[data][0]
-        if l1['email'] == email:
-            if subject == "OVERALL":
-                score = l1['total_score']
-            else:
-                if subject.lower() not in l1['scores']:
-                    score = 0
-                else:
-                    score = l1['scores'][subject.lower()]
+    global_subject_rank = -1
+    subject_marks_user = -1
+    for it in subject_rank_list:
+        subject_rank_dict[i] = {'score' : it[0] , 'email' : it[1][0]}
+        if( it[1][0] == email):
+            global_subject_rank = i
+            subject_marks_user = it[0]
+        i+=1
 
-    return score
+    for it in subject_rank_dict:
+        email_id = subject_rank_dict[it]['email']
+        user_data = get_user_data(email_id)
+        user_college = user_data['college']
+        user_name = user_data['name']
+        subject_rank_dict[it]['name'] = user_name
+        subject_rank_dict[it]['college'] = user_college
 
+
+    return subject_rank_dict
 
 
 @api_view(['POST'])
@@ -569,23 +591,13 @@ def get_user_ranklist_data(request):
             college_rank = searching_rank(user_college_ranklist, email)
             global_rank = searching_rank(user_global_ranklist, email)
 
-            subject_wise_rankList = generate_ranklist_for_each_subject(email, user_college)
+            subject_wise_rankListG = generate_ranklist_for_each_subject(email, user_college , user_global_ranklist)
+            subject_wise_rankListC = generate_ranklist_for_each_subject(email, user_college , user_college_ranklist)
             subject = rank_subject
 
-            actual_list = user_college_ranklist
-            actual_global_list = user_global_ranklist
-            # actual_list['subject_score'] = 0
-            # print(actual_list)
 
-            added_score = helper(actual_list , email , subject.upper())
-            actual_list['subject_score'] = added_score
-            actual_list['user_college'] = user_college
-
-            actual_global_list['subject_score'] = added_score
-            actual_global_list['user_college'] = user_college
-
-
-
+            subject_rank_dict_G = generate_list(subject_wise_rankListG , subject , email)
+            subject_rank_dict_C = generate_list(subject_wise_rankListC , subject , email)
             if subject == "overall": 
                 # actual_list['subject_score'] = user_college_ranklist['total_score']
                 user_ranklist_data = {
@@ -593,42 +605,19 @@ def get_user_ranklist_data(request):
                     'college_name': user_college,
                     'college_rank': college_rank,
                     'global_rank': global_rank,
-                    'global_list': actual_global_list,
-                    'college_list': actual_list,
+                    'global_list': subject_rank_dict_G,
+                    'college_list': subject_rank_dict_C,
                 }
                 return Response(user_ranklist_data, status=status.HTTP_200_OK)     
             else:
-                subject_rank_list = list((zip(subject_wise_rankList[subject.upper()]['score'] , zip(subject_wise_rankList[subject.upper()]['email']))))
-                Sort_Tuple(subject_rank_list)
-                # subject_rank = subject_rank_calculator(subject_rank_list)
-                new_list = Sort_Tuple(subject_rank_list)
-                new_list.reverse()
-                subject_rank_list = new_list
-
-                subject_rank_dict = {}
-                for i in range(1 , len(subject_rank_list) + 1):
-                    subject_rank_dict[i] = {'score' : 0 , 'email' : ""}
-
-                i = 1
-                global_subject_rank = -1
-                subject_marks_user = -1
-                for it in subject_rank_list:
-                    subject_rank_dict[i] = {'score' : it[0] , 'email' : it[1][0]}
-                    if( it[1][0] == email):
-                        global_subject_rank = i
-                        subject_marks_user = it[0]
-                    i+=1
-
                 user_ranklist_data = {
                     'subject': subject,
                     'college_name': user_college,
-                    'score': subject_marks_user,
                     'college_rank': college_rank,
                     'global_rank': global_rank,
-                    'global_subject_rank': global_subject_rank,
-                    'subject_rank_list': subject_rank_dict, 
-                    'global_list': actual_global_list,
-                    'college_list': actual_list,
+                    # 'global_subject_rank': global_subject_rank,
+                    'global_list': subject_rank_dict_G,
+                    'college_list': subject_rank_dict_C,
                 }
                 return Response(user_ranklist_data, status=status.HTTP_200_OK)
 
