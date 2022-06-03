@@ -598,7 +598,7 @@ def get_user_ranklist_data(request):
 
             subject_rank_dict_G = generate_list(subject_wise_rankListG , subject , email)
             subject_rank_dict_C = generate_list(subject_wise_rankListC , subject , email)
-           
+
             user_ranklist_data = {
                     'subject' : subject,
                     'college_name': user_college,
@@ -610,5 +610,99 @@ def get_user_ranklist_data(request):
             return Response(user_ranklist_data, status=status.HTTP_200_OK)     
         print("EMAIL DOES NOT EXIST")
         return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
+
+    return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def courses_promotion(request):
+    """
+    {
+        "email" : "demouser7@gmail.com"
+    }
+    """
+    serializer = EmailSerializer(data=request.data)
+    if serializer.is_valid():
+        serz_data = serializer.data
+        email = serz_data['email']
+        user_id = email.split("@")[0]
+
+        if check_id_exist(user_id) != 1:
+            print("EMAIL DOES NOT EXIST")
+            return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
+
+        user_data = get_user_data(email)
+
+        subjects = user_data["topic_wise_distribution"]
+
+        core_topic=""
+        core_subject=""
+        sde_bootcamp_topic=""
+        sde_bootcamp_subject=""
+        apti_topic=""
+        apti_subject=""
+        
+        min_score = 20
+
+        for subject in subjects.keys():
+            
+            if(subject=='oops' or subject=='os' or subject=='cn' or subject=='dbms' ):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        core_topic=topic
+                        core_subject=subject
+                        var=mark
+                        
+            elif(subject=='dsa'):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        sde_bootcamp_topic=topic
+                        sde_bootcamp_subject=subject
+                        var=mark
+                        
+            elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        apti_topic=topic
+                        apti_subject=subject
+                        var=mark
+        
+        dict={}
+        
+        if(core_topic != "" and core_subject!=""):
+            str=core_topic + " is weakest topic of " + core_subject            
+            dict['core']=str
+        
+        if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
+            str=sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject            
+            dict['sde_bootcamp']=str
+        
+        if(apti_topic != "" and apti_subject!=""):
+            str=apti_topic + " is weakest topic of " + apti_subject            
+            dict['apti']=str
+            
+
+        return Response(dict, status=status.HTTP_200_OK)
 
     return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
