@@ -642,7 +642,8 @@ def courses_promotion(request):
         apti_topic=""
         apti_subject=""
         
-        min_score = 20
+        min_score = get_85percent_score()
+        # print(min_score)
 
         for subject in subjects.keys():
             
@@ -691,16 +692,16 @@ def courses_promotion(request):
         dict={}
         
         if(core_topic != "" and core_subject!=""):
-            str=core_topic + " is weakest topic of " + core_subject            
-            dict['core']=str
+            arr=[core_topic,core_subject]            
+            dict['core']=arr
         
         if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
-            str=sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject            
-            dict['sde_bootcamp']=str
+            arr=[sde_bootcamp_topic,sde_bootcamp_subject]          
+            dict['sde_bootcamp']=arr
         
         if(apti_topic != "" and apti_subject!=""):
-            str=apti_topic + " is weakest topic of " + apti_subject            
-            dict['apti']=str
+            arr=[apti_topic,apti_subject]             
+            dict['apti']=arr
             
 
         return Response(dict, status=status.HTTP_200_OK)
