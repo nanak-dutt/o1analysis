@@ -47,4 +47,5 @@ urlpatterns = [
 
 	path('weak_topic' , views.weakest_topics),
 	path('get_user_ranklist' , views.get_user_ranklist_data),
+	path('courses_promotion' , views.courses_promotion),
 ]

@@ -571,6 +571,31 @@ def get_user_ranklist_data(request):
     {
         "email" : "demouser7@gmail.com",
         "rank_subject" : "overall"
+
+        Returns a dict containing
+        {
+            subject = "rank_subject",
+            college_name = "user_college",
+            college_rank = college rank of user,
+            global_rank = global rank of user,
+            global_list = {
+                    "1" : {
+                        "score" : ,
+                        "email": "user_email", 
+                        "name": "user_name",
+                        "college": "user_college"
+                    }
+            }
+            college_list = {
+                    "1" : {
+                        "score" : ,
+                        "email": "user_email", 
+                        "name": "user_name",
+                        "college": "user_college"
+                    }
+            }
+            
+        }
     }
     """
     serializer = ranklistSerializer(data=request.data)
@@ -585,6 +610,7 @@ def get_user_ranklist_data(request):
 
             user_global_ranklist = get_global_ranklist()  # fetching global Rank-list
             user_college_ranklist = get_college_ranklist(user_college)  # fetching college Rank-list
+
 
 
 
@@ -610,5 +636,99 @@ def get_user_ranklist_data(request):
             return Response(user_ranklist_data, status=status.HTTP_200_OK)     
         print("EMAIL DOES NOT EXIST")
         return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
+
+    return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def courses_promotion(request):
+    """
+    {
+        "email" : "demouser7@gmail.com"
+    }
+    """
+    serializer = EmailSerializer(data=request.data)
+    if serializer.is_valid():
+        serz_data = serializer.data
+        email = serz_data['email']
+        user_id = email.split("@")[0]
+
+        if check_id_exist(user_id) != 1:
+            print("EMAIL DOES NOT EXIST")
+            return Response("EMAIL DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
+
+        user_data = get_user_data(email)
+
+        subjects = user_data["topic_wise_distribution"]
+
+        core_topic=""
+        core_subject=""
+        sde_bootcamp_topic=""
+        sde_bootcamp_subject=""
+        apti_topic=""
+        apti_subject=""
+        
+        min_score = get_85percent_score()
+        # print(min_score)
+
+        for subject in subjects.keys():
+            
+            if(subject=='oops' or subject=='os' or subject=='cn' or subject=='dbms' ):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        core_topic=topic
+                        core_subject=subject
+                        var=mark
+                        
+            elif(subject=='dsa'):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        sde_bootcamp_topic=topic
+                        sde_bootcamp_subject=subject
+                        var=mark
+                        
+            elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
+                
+                var = min_score
+                
+                topics = subjects[subject]                
+                
+                for topic in topics.keys():
+                    mark = topics[topic][0]
+                    
+                    if(mark < var):
+                        apti_topic=topic
+                        apti_subject=subject
+                        var=mark
+        
+        dict={}
+        
+        if(core_topic != "" and core_subject!=""):
+            arr=[core_topic,core_subject]            
+            dict['core']=arr
+        
+        if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
+            arr=[sde_bootcamp_topic,sde_bootcamp_subject]          
+            dict['sde_bootcamp']=arr
+        
+        if(apti_topic != "" and apti_subject!=""):
+            arr=[apti_topic,apti_subject]             
+            dict['apti']=arr
+            
+
+        return Response(dict, status=status.HTTP_200_OK)
 
     return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
