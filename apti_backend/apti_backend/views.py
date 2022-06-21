@@ -111,10 +111,24 @@ def login(request):
 # helper function to generate analytics
 def generate_test_analysis(email, uid):
     correct_answers = get_correct_answers()
-    user_responses = get_user_responses(email)
-
-    if user_responses == None:
-        return -1
+    
+    # ORIGINAL CODE Uncomment this 
+    
+    #user_responses = get_user_responses(email)
+    # if user_responses == None:
+    #     return -1
+    
+    
+    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari
+    user_responses={}
+    i=0
+    for question_no in correct_answers:
+        i=i+1
+        if(i%7==0 or i%5==0):
+            user_responses[question_no + 2]=correct_answers[question_no]['answer']
+        else:
+            user_responses[question_no + 2]='setting wrong answer'
+    ### END        
 
     # DB Fields
     scores = {}
@@ -122,12 +136,15 @@ def generate_test_analysis(email, uid):
     topic_wise_distribution = {}
     total_score = 0
 
+
+            
     for question_no in correct_answers:
         question = correct_answers[question_no]['question']
         correct_ans = correct_answers[question_no]['answer']
         subject = correct_answers[question_no]['subject']
         topic = correct_answers[question_no]['topic']
         difficulty = correct_answers[question_no]['level']
+            
 
         # Field check
         if not subject in scores:
