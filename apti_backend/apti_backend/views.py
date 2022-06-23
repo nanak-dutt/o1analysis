@@ -119,12 +119,19 @@ def generate_test_analysis(email, uid):
     #     return -1
     
     
-    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari
+    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari       
+    language_chosen1='c'
+    language_chosen2='python'
     user_responses={}
     i=0
     for question_no in correct_answers:
         i=i+1
-        if(i%7==0 or i%5==0):
+        subject = correct_answers[question_no]['subject']
+        topic = correct_answers[question_no]['topic']
+        # correct_ans = correct_answers[question_no]['answer']
+        if(subject=='language' and (topic!=language_chosen1 and topic!=language_chosen2)):
+            user_responses[question_no + 2]="" ## Putting Blank answer
+        elif(i%7==0 or i%5==0):
             user_responses[question_no + 2]=correct_answers[question_no]['answer']
         else:
             user_responses[question_no + 2]='setting wrong answer'
@@ -135,34 +142,67 @@ def generate_test_analysis(email, uid):
     level_wise_distribution = {}
     topic_wise_distribution = {}
     total_score = 0
-
-
-            
+    
+    ## language skipped checker
+    lang={
+        "c":0,
+        "c++":0,
+        "python":0,
+        "java":0
+    }
+    lang_total={
+        "c":0,
+        "c++":0,
+        "python":0,
+        "java":0
+    }
+    
+    for question_no in correct_answers:
+        subject = correct_answers[question_no]['subject']
+        topic = correct_answers[question_no]['topic']
+        if(subject=='language'):
+           # checking blank answers
+           lang_total[topic]=lang_total[topic]+1
+           if (user_responses[question_no + 2].strip() == ""):
+               lang[topic]=lang[topic]+1
+    skipped_lang=[]
+    if(lang_total['c']==lang['c']):
+         skipped_lang.append('c')
+    if(lang_total['c++']==lang['c++']):
+         skipped_lang.append('c++')
+    if(lang_total['python']==lang['python']):
+         skipped_lang.append('python')
+    if(lang_total['java']==lang['java']):
+         skipped_lang.append('java')
+    
+      
     for question_no in correct_answers:
         question = correct_answers[question_no]['question']
         correct_ans = correct_answers[question_no]['answer']
         subject = correct_answers[question_no]['subject']
         topic = correct_answers[question_no]['topic']
         difficulty = correct_answers[question_no]['level']
-            
 
         # Field check
         if not subject in scores:
             scores[subject] = 0
-
         if not subject in level_wise_distribution:
-            level_wise_distribution[subject] = {
+                level_wise_distribution[subject] = {
                 "hard": [0, 0, 0],
                 "medium": [0, 0, 0],
                 "easy": [0, 0, 0]
             }
-
         if not subject in topic_wise_distribution:
-            topic_wise_distribution[subject] = {}
-
-        if not topic in topic_wise_distribution[subject]:
-            topic_wise_distribution[subject][topic] = [0, 0, 0]
-
+                topic_wise_distribution[subject] = {}
+        if(subject!='language'):
+            if not topic in topic_wise_distribution[subject]:
+                topic_wise_distribution[subject][topic] = [0, 0, 0]
+        elif(subject=='language' and (topic!=skipped_lang[0] and topic!=skipped_lang[1])):
+            if not topic in topic_wise_distribution[subject]:
+                topic_wise_distribution[subject][topic] = [0, 0, 0]
+        
+                
+                
         if difficulty == "easy":
             points = 2
         elif difficulty == "medium":
@@ -179,9 +219,11 @@ def generate_test_analysis(email, uid):
         print(user_responses[question_no + 2].strip())
         print(correct_ans.strip() == user_responses[question_no + 2].strip())
 
-
+   
         # correct then -> +2 bcoz first 3 columns are timestamp, email, score
-        if (user_responses[question_no + 2].strip() == correct_ans.strip()):
+        if(subject=='language' and (topic==skipped_lang[0] or topic==skipped_lang[1])):
+            continue
+        elif (user_responses[question_no + 2].strip() == correct_ans.strip()):
             # increment no. of correct ans
             level_wise_distribution[subject][difficulty][1] += 1
             topic_wise_distribution[subject][topic][1] += 1
@@ -197,6 +239,7 @@ def generate_test_analysis(email, uid):
         level_wise_distribution[subject][difficulty][0] += 1
         topic_wise_distribution[subject][topic][0] += 1
 
+    
     res = update_scored_db(total_score, scores, level_wise_distribution, topic_wise_distribution, uid)
     if res == -1:
         print("Total Score:", total_score)
@@ -213,7 +256,7 @@ def generate_test_analysis(email, uid):
 def analytics(request):
     """
     {
-        "email": "demouser8@gmail.com",
+        "email": "demouser6@gmail.com",
         "subject" : "overall"
     }
     """
