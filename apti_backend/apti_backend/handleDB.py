@@ -267,3 +267,48 @@ def leetcode_api(uid, subject):
 
 	return leetcode_json
 
+
+def get_subject_ranklist(subject):
+	
+	my_list = []
+
+	users = db.collection("user").get()
+	print(users)
+	i = 1
+
+	for user in users:
+		data = user.to_dict()
+
+		if 'scores' in data.keys():
+			scores = data['scores']
+			if subject in scores.keys():
+				marks = data['scores'][subject]
+				
+
+					
+				rank = -1
+				dict = {
+					'rank': i,
+					'name': data['name'],
+					'college': data['college'],
+					'marks': marks
+				}
+				dict['rank'] = i
+				i=i+1
+
+				my_list.append(dict)
+		
+	
+	my_list =  sorted(my_list, key=lambda k: k['marks'], reverse=True)
+	j=1
+	i=0
+	for i in my_list:
+
+		i['rank']=j
+		j=j+1
+
+	print(my_list)
+
+	return my_list
+
+

@@ -501,6 +501,25 @@ def weakest_topics(request):
     return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+def subjectranklist(request):
+    """
+    {
+        "subject" : "dbms"
+    }
+    """
+    data = {}
+    serializer = SubjectRanklistSerializer(data = request.data)
+    if serializer.is_valid():
+        subject = serializer.data['subject']
+        lst = get_subject_ranklist(subject)
+        print(subject)
+        data = {
+            "ranklist": lst
+        }
+        return Response(data, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 """
