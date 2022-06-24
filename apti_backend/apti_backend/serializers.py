@@ -25,3 +25,6 @@ class AnalysisSerializer(serializers.Serializer):
 class ranklistSerializer(serializers.Serializer):
 	email = serializers.EmailField()
 	rank_subject = serializers.CharField(max_length = 100)
+
+class SubjectRanklistSerializer(serializers.Serializer):
+	subject = serializers.CharField(max_length = 100)
