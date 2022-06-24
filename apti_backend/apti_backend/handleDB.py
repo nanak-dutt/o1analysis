@@ -273,9 +273,7 @@ def get_subject_ranklist(subject):
 	my_list = []
 
 	users = db.collection("user").get()
-	print(users)
 	i = 1
-
 	for user in users:
 		data = user.to_dict()
 
@@ -283,9 +281,6 @@ def get_subject_ranklist(subject):
 			scores = data['scores']
 			if subject in scores.keys():
 				marks = data['scores'][subject]
-				
-
-					
 				rank = -1
 				dict = {
 					'rank': i,
@@ -303,12 +298,8 @@ def get_subject_ranklist(subject):
 	j=1
 	i=0
 	for i in my_list:
-
 		i['rank']=j
 		j=j+1
-
-	print(my_list)
-
 	return my_list
 
 

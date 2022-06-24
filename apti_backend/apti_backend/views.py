@@ -512,12 +512,16 @@ def subjectranklist(request):
     serializer = SubjectRanklistSerializer(data = request.data)
     if serializer.is_valid():
         subject = serializer.data['subject']
-        lst = get_subject_ranklist(subject)
-        print(subject)
-        data = {
-            "ranklist": lst
-        }
-        return Response(data, status=status.HTTP_200_OK)
+        if subject == "overall":
+            lst = get_global_ranklist()
+            return Response(lst , status=status.HTTP_200_OK)
+        else:
+            lst = get_subject_ranklist(subject)
+            print(subject)
+            data = {
+                "ranklist": lst
+            }
+            return Response(data, status=status.HTTP_200_OK)
     return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
