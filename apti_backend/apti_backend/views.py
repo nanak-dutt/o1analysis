@@ -424,6 +424,85 @@ def college_list(request):
     return Response({"clg_names" : college_names}, status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
+def weakest_topics(request):
+    """
+    {
+        "email" : "demouser6@gmail.com"
+    }
+    """
+    serializer = EmailSerializer(data=request.data)
+    if serializer.is_valid():
+        ser_data = serializer.data
+        email = ser_data['email']
+        user_id = email.split("@")[0]
+
+        user_data = get_user_data(email)
+
+        subject_list = []
+        topic_list = []
+        
+        
+        # calculating 85% score benchmark from any random topic
+        questions = db.collection("ques_bank").get()
+        question1 = questions[0].to_dict()
+        
+        question1_subject = question1['subject']
+        question1_topic = question1['topic']
+        
+        tpoic_questions = db.collection("ques_bank").where(u'subject', u'==', question1_subject).where(u'topic', u'==', question1_topic).get()
+        
+        score = 0
+        for question in tpoic_questions:
+            dict = question.to_dict()
+
+            if(dict['level']=='easy'):
+                score=score+2
+            elif(dict['level']=='medium'):
+                score=score+4
+            elif(dict['level']=='hard'):
+                score=score+6
+        
+        score_85 = score*0.85
+        print(score_85)
+        
+        subjects = user_data["topic_wise_distribution"]             
+
+        for subject in subjects.keys():
+
+            topics = subjects[subject]
+
+            var = score_85
+            weak_topic = ""
+
+            for topic in topics.keys():
+                mark = topics[topic][0]
+                if (mark < var):
+                    var = mark
+                    weak_topic = topic
+                    
+            # if there is no weak topic in subject, subject will not be added 
+            if(weak_topic!=""):
+                subject_list.append(subject)
+                topic_list.append(weak_topic)
+
+        print(subject_list)
+        print(topic_list)
+
+        dict = {}
+
+        sz = len(subject_list)
+
+        for i in range(0, sz):
+            dict.update({subject_list[i]: topic_list[i]})
+
+        return Response(dict, status=status.HTTP_200_OK)
+
+    return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 """
 @api_view(['POST'])
 def weakest_topics(request):
