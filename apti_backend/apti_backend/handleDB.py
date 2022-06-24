@@ -267,19 +267,3 @@ def leetcode_api(uid, subject):
 
 	return leetcode_json
 
-def get_85percent_score():
-	os_questions = db.collection("ques_bank").where(u'subject', u'==', 'OS').where(u'topic', u'==', 'scheduling').get()
-	score = 0
-	for question in os_questions:
-		dict = question.to_dict()
-
-		if(dict['level']=='easy'):
-			score=score+2
-		elif(dict['level']=='medium'):
-			score=score+4
-		elif(dict['level']=='hard'):
-			score=score+6
-
-		# print(score)
-
-	return (score*0.85)

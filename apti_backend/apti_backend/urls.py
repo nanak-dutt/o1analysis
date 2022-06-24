@@ -35,7 +35,7 @@ urlpatterns = [
 	path('ranklist/college', views.ranklist),
 	path('ranklist/global', views.globalranklist),
 
-	# path('weak_topic' , views.weakest_topics),
+	path('weak_topic' , views.weakest_topics),
 	# path('get_user_ranklist' , views.get_user_ranklist_data),		==
 	# path('courses_promotion' , views.courses_promotion),			==
 ]
