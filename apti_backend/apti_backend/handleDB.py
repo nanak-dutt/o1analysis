@@ -163,17 +163,12 @@ def get_global_ranklist():
 		data = doc.to_dict()
 		data.pop("level_wise_distribution")
 		data.pop("topic_wise_distribution")
+		data["rank"] = i
+		data["marks"] = data.pop("total_score")
+		i += 1
 		lst.append(data)
-		# lst.append(i)
-		# i += 1
 
-	actual_ranklist = {}
-	for scores in lst:
-		actual_ranklist[i] = []
-		actual_ranklist[i].append(scores)
-		i+=1
-
-	return actual_ranklist
+	return lst
 
 
 def get_college_ranklist(college):
@@ -210,96 +205,27 @@ def update_scored_db(totaldb, scores, level_wise_distribution, topic_wise_distri
 		return -1
 
 
-
-
-
-def leetcode_api(uid, subject):
-
-	data = db.collection('user').document(uid).get()
-	data = data.to_dict()
-
-	arr_subjects = []
-	arr_scores = []
-
-	easyque_correct_count = 0
-	medque_correct_count = 0
-	hardque_correct_count = 0
-	if (subject == 'all'):
-		for key,value in data['level_wise_distribution'].items():
-			arr_subjects.append(key)
-			for key1,value1 in value.items():
-				if(key1 == 'easy'):
-					easyque_correct_count = easyque_correct_count + value1[1]
-				if(key1 == 'medium'):
-					medque_correct_count = medque_correct_count + value1[1]
-				if(key1 == 'hard'):
-					hardque_correct_count = hardque_correct_count + value1[1]
-
-		totalque_correct_count =  easyque_correct_count + medque_correct_count + hardque_correct_count
-	else:
-		arr_subjects.append(subject)
-		for key,value in data['level_wise_distribution'].items():
-			if(key == subject):
-				for key1,value1 in value.items():
-					if(key1 == 'easy'):
-						easyque_correct_count = easyque_correct_count + value1[1]
-					if(key1 == 'medium'):
-						medque_correct_count = medque_correct_count + value1[1]
-					if(key1 == 'hard'):
-						hardque_correct_count = hardque_correct_count + value1[1]
-
-		totalque_correct_count =  easyque_correct_count + medque_correct_count + hardque_correct_count
-
-	arr_scores.append(easyque_correct_count)
-	arr_scores.append(medque_correct_count)
-	arr_scores.append(hardque_correct_count)
-	arr_scores.append(totalque_correct_count)
-
-	arr_ezy_med_hard = ["easy","medium","hard","overall"]
-
-	leetcode = {
-		'correct_questions': arr_scores,
-		'labels':arr_ezy_med_hard,
-		'x-axis-labels' : arr_subjects,
-	}
-
-	leetcode_json = json.dumps(leetcode, indent = 4)
-
-	return leetcode_json
-
-
 def get_subject_ranklist(subject):
-	
 	my_list = []
 
 	users = db.collection("user").get()
-	i = 1
 	for user in users:
 		data = user.to_dict()
-
 		if 'scores' in data.keys():
 			scores = data['scores']
 			if subject in scores.keys():
 				marks = data['scores'][subject]
-				rank = -1
-				dict = {
-					'rank': i,
+				user_rank_data = {
 					'name': data['name'],
 					'college': data['college'],
 					'marks': marks
 				}
-				dict['rank'] = i
-				i=i+1
+				my_list.append(user_rank_data)
 
-				my_list.append(dict)
-		
-	
-	my_list =  sorted(my_list, key=lambda k: k['marks'], reverse=True)
-	j=1
-	i=0
-	for i in my_list:
-		i['rank']=j
-		j=j+1
+	my_list = sorted(my_list, key=lambda k: k['marks'], reverse=True)
+	i = 1
+	for user in my_list:
+		user['rank'] = i
+		i += 1
+
 	return my_list
-
-

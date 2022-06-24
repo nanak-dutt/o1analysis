@@ -111,15 +111,15 @@ def login(request):
 # helper function to generate analytics
 def generate_test_analysis(email, uid):
     correct_answers = get_correct_answers()
-    
-    # ORIGINAL CODE Uncomment this 
-    
+
+    # ORIGINAL CODE Uncomment this
+
     #user_responses = get_user_responses(email)
     # if user_responses == None:
     #     return -1
-    
-    
-    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari       
+
+
+    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari
     language_chosen1='c'
     language_chosen2='python'
     user_responses={}
@@ -135,14 +135,14 @@ def generate_test_analysis(email, uid):
             user_responses[question_no + 2]=correct_answers[question_no]['answer']
         else:
             user_responses[question_no + 2]='setting wrong answer'
-    ### END        
+    ### END
 
     # DB Fields
     scores = {}
     level_wise_distribution = {}
     topic_wise_distribution = {}
     total_score = 0
-    
+
     ## language skipped checker
     lang={
         "c":0,
@@ -156,7 +156,7 @@ def generate_test_analysis(email, uid):
         "python":0,
         "java":0
     }
-    
+
     for question_no in correct_answers:
         subject = correct_answers[question_no]['subject']
         topic = correct_answers[question_no]['topic']
@@ -174,8 +174,8 @@ def generate_test_analysis(email, uid):
          skipped_lang.append('python')
     if(lang_total['java']==lang['java']):
          skipped_lang.append('java')
-    
-      
+
+
     for question_no in correct_answers:
         question = correct_answers[question_no]['question']
         correct_ans = correct_answers[question_no]['answer']
@@ -200,9 +200,9 @@ def generate_test_analysis(email, uid):
         elif(subject=='language' and (topic!=skipped_lang[0] and topic!=skipped_lang[1])):
             if not topic in topic_wise_distribution[subject]:
                 topic_wise_distribution[subject][topic] = [0, 0, 0]
-        
-                
-                
+
+
+
         if difficulty == "easy":
             points = 2
         elif difficulty == "medium":
@@ -219,7 +219,7 @@ def generate_test_analysis(email, uid):
         print(user_responses[question_no + 2].strip())
         print(correct_ans.strip() == user_responses[question_no + 2].strip())
 
-   
+
         # correct then -> +2 bcoz first 3 columns are timestamp, email, score
         if(subject=='language' and (topic==skipped_lang[0] or topic==skipped_lang[1])):
             continue
@@ -239,7 +239,7 @@ def generate_test_analysis(email, uid):
         level_wise_distribution[subject][difficulty][0] += 1
         topic_wise_distribution[subject][topic][0] += 1
 
-    
+
     res = update_scored_db(total_score, scores, level_wise_distribution, topic_wise_distribution, uid)
     if res == -1:
         print("Total Score:", total_score)
@@ -378,8 +378,17 @@ def analytics(request):
         return Response("Invalid data", status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+def globalranklist(request):
+    lst = get_global_ranklist()
+    data = {
+        "ranklist": lst
+    }
+    return Response(data, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
-def ranklist(request):
+def collegeranklist(request):
     """
     {
         "college" : "Shri Ramdeobaba College of Engineering and Management"
@@ -397,14 +406,28 @@ def ranklist(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-def globalranklist(request):
-    lst = get_global_ranklist()
-    data = {
-        "ranklist": lst
+@api_view(['POST'])
+def subjectranklist(request):
+    """
+    {
+        "subject" : "dbms"
     }
-    return Response(data, status=status.HTTP_200_OK)
+    """
+    data = {}
+    serializer = SubjectRanklistSerializer(data = request.data)
+    if serializer.is_valid():
+        subject = serializer.data['subject']
+        if subject == "overall":
+            lst = get_global_ranklist()
+        else:
+            lst = get_subject_ranklist(subject)
 
+        data = {
+            "ranklist": lst
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def question_bank(request):
@@ -441,38 +464,36 @@ def weakest_topics(request):
 
         subject_list = []
         topic_list = []
-        
+
         if 'topic_wise_distribution' not in user_data.keys():
             return Response("NO TEST GIVEN YET", status=status.HTTP_400_BAD_REQUEST)
-        
-        
+
         # calculating 85% score benchmark from any random topic
         questions = db.collection("ques_bank").get()
         question1 = questions[0].to_dict()
-        
+
         question1_subject = question1['subject']
         question1_topic = question1['topic']
-        
-        tpoic_questions = db.collection("ques_bank").where(u'subject', u'==', question1_subject).where(u'topic', u'==', question1_topic).get()
-        
+
+        topic_questions = db.collection("ques_bank").where(u'subject', u'==', question1_subject).where(u'topic', u'==', question1_topic).get()
+
         score = 0
-        for question in tpoic_questions:
+        for question in topic_questions:
             dict = question.to_dict()
 
             if(dict['level']=='easy'):
-                score=score+2
+                score += 2
             elif(dict['level']=='medium'):
-                score=score+4
+                score += 4
             elif(dict['level']=='hard'):
-                score=score+6
-        
+                score += 6
+
         score_85 = score*0.85
         print(score_85)
-        
-        subjects = user_data["topic_wise_distribution"]             
+
+        subjects = user_data["topic_wise_distribution"]
 
         for subject in subjects.keys():
-
             topics = subjects[subject]
 
             var = score_85
@@ -483,87 +504,48 @@ def weakest_topics(request):
                 if (mark < var):
                     var = mark
                     weak_topic = topic
-                    
-            # if there is no weak topic in subject, subject will not be added 
-            if(weak_topic!=""):
+
+            # if there is no weak topic in subject, subject will not be added
+            if(weak_topic != ""):
                 subject_list.append(subject)
                 topic_list.append(weak_topic)
 
         print(subject_list)
         print(topic_list)
 
-        # dict = {}
-
-        # sz = len(subject_list)
-
-        # for i in range(0, sz):
-        #     dict.update({subject_list[i]: topic_list[i]})
-        
         core_topic=""
         core_subject=""
         sde_bootcamp_topic=""
         sde_bootcamp_subject=""
         apti_topic=""
         apti_subject=""
-        
-        sz = len(subject_list) 
-        
+
+        sz = len(subject_list)
+
         for i in range(0, sz):
-            
             subject = subject_list[i]
             topic = topic_list[i]
-            
+
             if(subject=='oops' or subject=='os' or subject=='cn' or subject=='dbms' ):
-                core_topic=topic
-                core_subject=subject
+                core_topic = topic
+                core_subject = subject
             elif(subject=='dsa'):
-                sde_bootcamp_topic=topic
-                sde_bootcamp_subject=subject
+                sde_bootcamp_topic = topic
+                sde_bootcamp_subject = subject
             elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
-                apti_topic=topic
-                apti_subject=subject
-                
-        dict = {}
-        
+                apti_topic = topic
+                apti_subject = subject
+
+        data = {}
         if(core_topic != "" and core_subject!=""):
-            str=core_topic + " is weakest topic of " + core_subject            
-            dict['core']=str
+            data['core'] = core_topic + " is weakest topic of " + core_subject
 
         if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
-            str=sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject            
-            dict['sde_bootcamp']=str
+            data['sde_bootcamp'] = sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject
 
         if(apti_topic != "" and apti_subject!=""):
-            str=apti_topic + " is weakest topic of " + apti_subject            
-            dict['apti']=str
+            data['apti'] = apti_topic + " is weakest topic of " + apti_subject
 
-        return Response(dict, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)
 
     return Response("INVALID DATA (ISSUE IN SERIALIZATION)", status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-def subjectranklist(request):
-    """
-    {
-        "subject" : "dbms"
-    }
-    """
-    data = {}
-    serializer = SubjectRanklistSerializer(data = request.data)
-    if serializer.is_valid():
-        subject = serializer.data['subject']
-        if subject == "overall":
-            lst = get_global_ranklist()
-            return Response(lst , status=status.HTTP_200_OK)
-        else:
-            lst = get_subject_ranklist(subject)
-            print(subject)
-            data = {
-                "ranklist": lst
-            }
-            return Response(data, status=status.HTTP_200_OK)
-    return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-
-

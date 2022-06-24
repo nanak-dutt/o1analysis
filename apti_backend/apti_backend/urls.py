@@ -32,10 +32,10 @@ urlpatterns = [
     path('auth/login/', views.login),
 	path('get_test_analysis/', views.analytics),
 
-	path('ranklist/college', views.ranklist),
-	path('ranklist/global', views.globalranklist),
-	path('ranklist/subject_ranklist', views.subjectranklist),
-	path('weak_topic' , views.weakest_topics),
+	path('ranklist/college/', views.collegeranklist),
+	path('ranklist/global/', views.globalranklist),
+	path('ranklist/subject_ranklist/', views.subjectranklist),
+	path('weak_topic/' , views.weakest_topics),
 	# path('get_user_ranklist' , views.get_user_ranklist_data),		==
 	# path('courses_promotion' , views.courses_promotion),			==
 ]
