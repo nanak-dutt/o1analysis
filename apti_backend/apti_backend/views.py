@@ -442,6 +442,9 @@ def weakest_topics(request):
         subject_list = []
         topic_list = []
         
+        if 'topic_wise_distribution' not in user_data.keys():
+            return Response("NO TEST GIVEN YET", status=status.HTTP_400_BAD_REQUEST)
+        
         
         # calculating 85% score benchmark from any random topic
         questions = db.collection("ques_bank").get()
@@ -489,12 +492,50 @@ def weakest_topics(request):
         print(subject_list)
         print(topic_list)
 
-        dict = {}
+        # dict = {}
 
-        sz = len(subject_list)
+        # sz = len(subject_list)
 
+        # for i in range(0, sz):
+        #     dict.update({subject_list[i]: topic_list[i]})
+        
+        core_topic=""
+        core_subject=""
+        sde_bootcamp_topic=""
+        sde_bootcamp_subject=""
+        apti_topic=""
+        apti_subject=""
+        
+        sz = len(subject_list) 
+        
         for i in range(0, sz):
-            dict.update({subject_list[i]: topic_list[i]})
+            
+            subject = subject_list[i]
+            topic = topic_list[i]
+            
+            if(subject=='oops' or subject=='os' or subject=='cn' or subject=='dbms' ):
+                core_topic=topic
+                core_subject=subject
+            elif(subject=='dsa'):
+                sde_bootcamp_topic=topic
+                sde_bootcamp_subject=subject
+            elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
+                apti_topic=topic
+                apti_subject=subject
+                
+        dict = {}
+        
+        if(core_topic != "" and core_subject!=""):
+            str=core_topic + " is weakest topic of " + core_subject            
+            dict['core']=str
+
+        if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
+            str=sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject            
+            dict['sde_bootcamp']=str
+
+        if(apti_topic != "" and apti_subject!=""):
+            str=apti_topic + " is weakest topic of " + apti_subject            
+            dict['apti']=str
 
         return Response(dict, status=status.HTTP_200_OK)
 
