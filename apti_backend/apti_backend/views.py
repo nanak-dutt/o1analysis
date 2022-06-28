@@ -220,7 +220,7 @@ def generate_test_analysis(email, uid):
                 topic_wise_distribution[subject] = {}
 
             if not topic in topic_wise_distribution[subject]:
-                topic_wise_distribution[subject][topic] = [0, 0, 0]
+                topic_wise_distribution[subject][topic] = [0, 0, 0, 0]
 
             if difficulty == "easy":
                 points = 2
