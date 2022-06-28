@@ -327,17 +327,17 @@ def analytics(request):
                 subject_scores.append(data['scores'][sub])
 
                 innerdata = data['level_wise_distribution'][sub]
-                hard += innerdata['hard'][0]
-                medium += innerdata['medium'][0]
-                easy += innerdata['easy'][0]
+                hard += innerdata['hard'][1]
+                medium += innerdata['medium'][1]
+                easy += innerdata['easy'][1]
 
                 correct.append(innerdata['hard'][1] + innerdata['medium'][1] + innerdata['easy'][1])
                 incorrect.append(innerdata['hard'][2] + innerdata['medium'][2] + innerdata['easy'][2])
         else:
             # can't calculate topic scores individually
-            hard = data['level_wise_distribution'][subject]['hard'][0]
-            medium = data['level_wise_distribution'][subject]['medium'][0]
-            easy = data['level_wise_distribution'][subject]['easy'][0]
+            hard = data['level_wise_distribution'][subject]['hard'][1]
+            medium = data['level_wise_distribution'][subject]['medium'][1]
+            easy = data['level_wise_distribution'][subject]['easy'][1]
             achieved_score = data['scores'][subject]
 
             for topic in data['topic_wise_distribution'][subject]:
