@@ -220,7 +220,7 @@ def generate_test_analysis(email, uid):
                 topic_wise_distribution[subject] = {}
 
             if not topic in topic_wise_distribution[subject]:
-                topic_wise_distribution[subject][topic] = [0, 0, 0]
+                topic_wise_distribution[subject][topic] = [0, 0, 0, 0]
 
             if difficulty == "easy":
                 points = 2
@@ -434,7 +434,7 @@ def subjectranklist(request):
     if serializer.is_valid():
         email = serializer.data['email']
         subject = serializer.data['subject']
-        user_id = email.split("@")[0] 
+        user_id = email.split("@")[0]
         data = get_user_data(email)
         college = data['college']
         if subject == "overall":
@@ -442,7 +442,7 @@ def subjectranklist(request):
             lst1 = get_college_ranklist(college)
         else:
             lst = get_subject_ranklist(subject)
-        
+
         data = {}
         if subject == "overall":
             data["globalRanklist"] = lst
