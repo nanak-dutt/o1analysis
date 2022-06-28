@@ -35,6 +35,26 @@ def get_correct_answers():
 	answers = {}
 	for q in questions:
 		doc = q.to_dict()
+		if doc.get("subject") == "language":
+			continue
+
+		answers[doc.get("no", -1)] = {
+			"id" : q.id,
+			"question" : doc.get("question"),
+			"answer" : doc.get("answer"),
+			"subject" : doc.get("subject"),
+			"topic" : doc.get("topic"),
+			"level" : doc.get("level")
+		}
+	return answers
+
+
+def get_language_answers(lang):
+	# questions = db.collection('ques_bank').where(u'topic', u'==', lang).order_by(u'no', direction=firestore.Query.ASCENDING).stream()
+	questions = db.collection('ques_bank').where(u'topic', u'==', lang).stream()
+	answers = {}
+	for q in questions:
+		doc = q.to_dict()
 		answers[doc.get("no", -1)] = {
 			"id" : q.id,
 			"question" : doc.get("question"),
@@ -48,9 +68,9 @@ def get_correct_answers():
 
 def get_user_responses(email):
 	sa = gspread.service_account(filename="credentials.json")
-	config = json.load(open("config.json"))
+	sheet_url = db.collection("sheeturl").get()[0].to_dict()["link"]
 
-	sh = sa.open_by_url(config["SHEET_URL"])
+	sh = sa.open_by_url(sheet_url)
 	wks = sh.worksheet("Form Responses 1")
 	d = wks.get_all_values()
 
@@ -192,19 +212,6 @@ def get_college_ranklist(college):
 	return actual_ranklist
 
 
-def update_scored_db(totaldb, scores, level_wise_distribution, topic_wise_distribution, uid):
-	try:
-		db.collection('user').document(uid).update({
-			'total_score': totaldb,
-			'scores': scores,
-			'level_wise_distribution': level_wise_distribution,
-			'topic_wise_distribution': topic_wise_distribution
-		})
-	except Exception as e:
-		print("ERROR IN UPDATE_SCORED_DB")
-		return -1
-
-
 def get_subject_ranklist(subject):
 	my_list = []
 
@@ -229,3 +236,16 @@ def get_subject_ranklist(subject):
 		i += 1
 
 	return my_list
+
+
+def update_scored_db(totaldb, scores, level_wise_distribution, topic_wise_distribution, uid):
+	try:
+		db.collection('user').document(uid).update({
+			'total_score': totaldb,
+			'scores': scores,
+			'level_wise_distribution': level_wise_distribution,
+			'topic_wise_distribution': topic_wise_distribution
+		})
+	except Exception as e:
+		print("ERROR IN UPDATE_SCORED_DB")
+		return -1

@@ -111,31 +111,10 @@ def login(request):
 # helper function to generate analytics
 def generate_test_analysis(email, uid):
     correct_answers = get_correct_answers()
+    user_responses = get_user_responses(email)
 
-    # ORIGINAL CODE Uncomment this
-
-    #user_responses = get_user_responses(email)
-    # if user_responses == None:
-    #     return -1
-
-
-    # TEMPORARY CODE TO CHECK API --> Bhushan Wanjari
-    language_chosen1='c'
-    language_chosen2='python'
-    user_responses={}
-    i=0
-    for question_no in correct_answers:
-        i=i+1
-        subject = correct_answers[question_no]['subject']
-        topic = correct_answers[question_no]['topic']
-        # correct_ans = correct_answers[question_no]['answer']
-        if(subject=='language' and (topic!=language_chosen1 and topic!=language_chosen2)):
-            user_responses[question_no + 2]="" ## Putting Blank answer
-        elif(i%7==0 or i%5==0):
-            user_responses[question_no + 2]=correct_answers[question_no]['answer']
-        else:
-            user_responses[question_no + 2]='setting wrong answer'
-    ### END
+    if user_responses == None:
+        return -1
 
     # DB Fields
     scores = {}
@@ -143,65 +122,31 @@ def generate_test_analysis(email, uid):
     topic_wise_distribution = {}
     total_score = 0
 
-    ## language skipped checker
-    lang={
-        "c":0,
-        "c++":0,
-        "python":0,
-        "java":0
-    }
-    lang_total={
-        "c":0,
-        "c++":0,
-        "python":0,
-        "java":0
-    }
 
+    # evaluating first 100 ques ... that is except language ques
     for question_no in correct_answers:
-        subject = correct_answers[question_no]['subject']
-        topic = correct_answers[question_no]['topic']
-        if(subject=='language'):
-           # checking blank answers
-           lang_total[topic]=lang_total[topic]+1
-           if (user_responses[question_no + 2].strip() == ""):
-               lang[topic]=lang[topic]+1
-    skipped_lang=[]
-    if(lang_total['c']==lang['c']):
-         skipped_lang.append('c')
-    if(lang_total['c++']==lang['c++']):
-         skipped_lang.append('c++')
-    if(lang_total['python']==lang['python']):
-         skipped_lang.append('python')
-    if(lang_total['java']==lang['java']):
-         skipped_lang.append('java')
-
-
-    for question_no in correct_answers:
-        question = correct_answers[question_no]['question']
-        correct_ans = correct_answers[question_no]['answer']
-        subject = correct_answers[question_no]['subject']
-        topic = correct_answers[question_no]['topic']
-        difficulty = correct_answers[question_no]['level']
+        question = correct_answers[question_no]['question'].strip().lower()
+        correct_ans = correct_answers[question_no]['answer'].strip().lower()
+        subject = correct_answers[question_no]['subject'].strip().lower()
+        topic = correct_answers[question_no]['topic'].strip().lower()
+        difficulty = correct_answers[question_no]['level'].strip().lower()
 
         # Field check
         if not subject in scores:
             scores[subject] = 0
+
         if not subject in level_wise_distribution:
-                level_wise_distribution[subject] = {
+            level_wise_distribution[subject] = {
                 "hard": [0, 0, 0],
                 "medium": [0, 0, 0],
                 "easy": [0, 0, 0]
             }
+
         if not subject in topic_wise_distribution:
-                topic_wise_distribution[subject] = {}
-        if(subject!='language'):
-            if not topic in topic_wise_distribution[subject]:
-                topic_wise_distribution[subject][topic] = [0, 0, 0]
-        elif(subject=='language' and (topic!=skipped_lang[0] and topic!=skipped_lang[1])):
-            if not topic in topic_wise_distribution[subject]:
-                topic_wise_distribution[subject][topic] = [0, 0, 0]
+            topic_wise_distribution[subject] = {}
 
-
+        if not topic in topic_wise_distribution[subject]:
+            topic_wise_distribution[subject][topic] = [0, 0, 0]
 
         if difficulty == "easy":
             points = 2
@@ -214,20 +159,15 @@ def generate_test_analysis(email, uid):
             return -1
 
         # DEBUGGING
-        print(question_no, correct_answers[question_no]["id"])
-        print(correct_ans.strip())
-        print(user_responses[question_no + 2].strip())
-        print(correct_ans.strip() == user_responses[question_no + 2].strip())
-
+        user_ans = user_responses[question_no + 2].strip().lower()
+        print(question_no, ":", correct_ans, ":", user_ans, ":", correct_ans == user_ans)
 
         # correct then -> +2 bcoz first 3 columns are timestamp, email, score
-        if(subject=='language' and (topic==skipped_lang[0] or topic==skipped_lang[1])):
-            continue
-        elif (user_responses[question_no + 2].strip() == correct_ans.strip()):
+        if (user_ans == correct_ans):
             # increment no. of correct ans
             level_wise_distribution[subject][difficulty][1] += 1
             topic_wise_distribution[subject][topic][1] += 1
-
+            # increment score
             total_score += points
             scores[subject] += points
         else:
@@ -240,13 +180,85 @@ def generate_test_analysis(email, uid):
         topic_wise_distribution[subject][topic][0] += 1
 
 
+    # evaluate language questions
+    language_mapping = {
+        "c": 1,
+        "c++": 11,
+        "java": 21,
+        "python": 31
+    }
+
+    lang1 = user_responses[103].strip().lower()
+    lang2 = user_responses[144].strip().lower()
+
+    for lang in [[lang1, 103], [lang2, 144]]:
+        print(lang)
+        lang_answers = get_language_answers(lang[0])
+        lang_user_responses = user_responses[lang[1] + language_mapping[lang[0]] : lang[1] + 10 + language_mapping[lang[0]]]
+
+        for question_no in lang_answers:
+            question = lang_answers[question_no]['question'].strip().lower()
+            correct_ans = lang_answers[question_no]['answer'].strip().lower()
+            subject = lang_answers[question_no]['subject'].strip().lower()
+            topic = lang_answers[question_no]['topic'].strip().lower()
+            difficulty = lang_answers[question_no]['level'].strip().lower()
+
+            # Field check
+            if not subject in scores:
+                scores[subject] = 0
+
+            if not subject in level_wise_distribution:
+                level_wise_distribution[subject] = {
+                    "hard": [0, 0, 0],
+                    "medium": [0, 0, 0],
+                    "easy": [0, 0, 0]
+                }
+
+            if not subject in topic_wise_distribution:
+                topic_wise_distribution[subject] = {}
+
+            if not topic in topic_wise_distribution[subject]:
+                topic_wise_distribution[subject][topic] = [0, 0, 0]
+
+            if difficulty == "easy":
+                points = 2
+            elif difficulty == "medium":
+                points = 4
+            elif difficulty == "hard":
+                points = 6
+            else:
+                print(difficulty)
+                return -1
+
+            # DEBUGGING
+            user_ans = lang_user_responses.pop(0).strip().lower()
+            print(question_no, ":", correct_ans, ":", user_ans, ":", correct_ans == user_ans)
+
+            # correct then -> +2 bcoz first 3 columns are timestamp, email, score
+            if (user_ans == correct_ans):
+                # increment no. of correct ans
+                level_wise_distribution[subject][difficulty][1] += 1
+                topic_wise_distribution[subject][topic][1] += 1
+                # increment score
+                total_score += points
+                scores[subject] += points
+            else:
+                # increment no. of incorrect ans
+                level_wise_distribution[subject][difficulty][2] += 1
+                topic_wise_distribution[subject][topic][2] += 1
+
+            # increment no. of total ques
+            level_wise_distribution[subject][difficulty][0] += 1
+            topic_wise_distribution[subject][topic][0] += 1
+
+
     res = update_scored_db(total_score, scores, level_wise_distribution, topic_wise_distribution, uid)
     if res == -1:
-        print("Total Score:", total_score)
-        print("Scores:", scores)
-        print("level_wise_distribution:", level_wise_distribution)
-        print("topic_wise_distribution:", topic_wise_distribution)
-        print("uid:", uid)
+        print("Total Score:", total_score, "\n")
+        print("Scores:", scores, "\n")
+        print("level_wise_distribution:", level_wise_distribution, "\n")
+        print("topic_wise_distribution:", topic_wise_distribution, "\n")
+        print("uid:", uid, "\n")
         return -1
 
     return 1
@@ -289,13 +301,13 @@ def analytics(request):
         subject_labels = []
         correct = []
         incorrect = []
-        hard = medium = easy = total = 0
+        hard = medium = easy = achieved_score = 0
 
         true_subject = ""
         if (subject == 'overall'):
             true_subject = subject
         elif subject == 'cn':
-            true_subject = "Computer NetWorks"
+            true_subject = "Computer Networks"
         elif subject == 'os':
             true_subject = "Operating Systems"
         elif subject == 'dbms':
@@ -308,13 +320,12 @@ def analytics(request):
             true_subject = subject
 
         if (subject == 'overall'):
-            total = data['total_score']
+            achieved_score = data['total_score']
             for sub in data['level_wise_distribution']:
                 subject_labels.append(sub)
                 subject_scores.append(data['scores'][sub])
 
                 innerdata = data['level_wise_distribution'][sub]
-
                 hard += innerdata['hard'][0]
                 medium += innerdata['medium'][0]
                 easy += innerdata['easy'][0]
@@ -322,16 +333,18 @@ def analytics(request):
                 correct.append(innerdata['hard'][1] + innerdata['medium'][1] + innerdata['easy'][1])
                 incorrect.append(innerdata['hard'][2] + innerdata['medium'][2] + innerdata['easy'][2])
         else:
+            # can't calculate topic scores individually
             hard = data['level_wise_distribution'][subject]['hard'][0]
             medium = data['level_wise_distribution'][subject]['medium'][0]
             easy = data['level_wise_distribution'][subject]['easy'][0]
-            total = hard + easy + medium
+            achieved_score = data['scores'][subject]
+
             for topic in data['topic_wise_distribution'][subject]:
                 subject_labels.append(topic)
+                subject_scores.append(-1)
                 innerdata = data['topic_wise_distribution'][subject][topic]
                 correct.append(innerdata[1])
                 incorrect.append(innerdata[2])
-                subject_scores.append(innerdata[0])
 
         Negative_Incorrects = []
         for i in incorrect:
@@ -339,7 +352,7 @@ def analytics(request):
 
         returndata = {
             'name': name,
-            'total': total,
+            'total': achieved_score,
             'subject': true_subject,
             'leetcode': {
                 'series': [hard, medium, easy],
@@ -428,6 +441,7 @@ def subjectranklist(request):
         return Response(data, status=status.HTTP_200_OK)
 
     return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 def question_bank(request):
