@@ -1,4 +1,5 @@
 import json
+from re import sub
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
@@ -423,21 +424,30 @@ def collegeranklist(request):
 def subjectranklist(request):
     """
     {
+        "email":  "demouser7@gmail.com"
         "subject" : "dbms"
     }
     """
     data = {}
-    serializer = SubjectRanklistSerializer(data = request.data)
+    serializer = AnalysisSerializer(data = request.data)
     if serializer.is_valid():
+        email = serializer.data['email']
         subject = serializer.data['subject']
+        user_id = email.split("@")[0] 
+        data = get_user_data(email)
+        college = data['college']
         if subject == "overall":
             lst = get_global_ranklist()
+            lst1 = get_college_ranklist(college)
         else:
             lst = get_subject_ranklist(subject)
-
-        data = {
-            "ranklist": lst
-        }
+        
+        data = {}
+        if subject == "overall":
+            data["globalRanklist"] = lst
+            data["collegeRanklist"] = lst1
+        else:
+            data["globalRanklist"] = lst
         return Response(data, status=status.HTTP_200_OK)
 
     return Response(data, status=status.HTTP_400_BAD_REQUEST)
