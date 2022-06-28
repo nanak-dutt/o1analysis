@@ -147,7 +147,7 @@ def generate_test_analysis(email, uid):
             topic_wise_distribution[subject] = {}
 
         if not topic in topic_wise_distribution[subject]:
-            topic_wise_distribution[subject][topic] = [0, 0, 0]
+            topic_wise_distribution[subject][topic] = [0, 0, 0, 0]
 
         if difficulty == "easy":
             points = 2
@@ -169,6 +169,7 @@ def generate_test_analysis(email, uid):
             level_wise_distribution[subject][difficulty][1] += 1
             topic_wise_distribution[subject][topic][1] += 1
             # increment score
+            topic_wise_distribution[subject][topic][3] += points
             total_score += points
             scores[subject] += points
         else:
@@ -241,6 +242,7 @@ def generate_test_analysis(email, uid):
                 level_wise_distribution[subject][difficulty][1] += 1
                 topic_wise_distribution[subject][topic][1] += 1
                 # increment score
+                topic_wise_distribution[subject][topic][3] += points
                 total_score += points
                 scores[subject] += points
             else:
@@ -251,7 +253,6 @@ def generate_test_analysis(email, uid):
             # increment no. of total ques
             level_wise_distribution[subject][difficulty][0] += 1
             topic_wise_distribution[subject][topic][0] += 1
-
 
     res = update_scored_db(total_score, scores, level_wise_distribution, topic_wise_distribution, uid)
     if res == -1:
