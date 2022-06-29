@@ -129,7 +129,7 @@ def check_analytics_exist(uid):
 		if (user.exists):
 			user = user.to_dict()
 			if user.get("level_wise_distribution") and user.get("scores") and user.get("topic_wise_distribution") and user.get("total_score"):
-				return 0
+				return 1
 		return 0
 	except:
 		print("ERROR IN CHECK_ANALYTICS_EXIST")
@@ -184,7 +184,7 @@ def get_global_ranklist():
 		data.pop("level_wise_distribution")
 		data.pop("topic_wise_distribution")
 		data["rank"] = i
-		data["marks"] = data.pop("total_score")
+		data["total_score"] = data.pop("total_score")
 		i += 1
 		lst.append(data)
 
@@ -196,11 +196,14 @@ def get_college_ranklist(college):
 	query = users_ref.order_by(u'total_score', direction=firestore.Query.DESCENDING).stream()
 
 	lst = []
+	i = 1
 	for doc in query:
 		data = doc.to_dict()
 		data.pop("level_wise_distribution")
 		data.pop("topic_wise_distribution")
-		data.pop("college")
+		data["rank"] = i
+		i += 1
+		# data.pop("college")
 		lst.append(data)
 
 	i = 1
