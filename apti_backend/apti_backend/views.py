@@ -343,8 +343,8 @@ def analytics(request):
 
             for topic in data['topic_wise_distribution'][subject]:
                 subject_labels.append(topic)
-                subject_scores.append(-1)
                 innerdata = data['topic_wise_distribution'][subject][topic]
+                subject_scores.append(innerdata[3])
                 correct.append(innerdata[1])
                 incorrect.append(innerdata[2])
 
@@ -357,7 +357,7 @@ def analytics(request):
             'total': achieved_score,
             'subject': true_subject,
             'leetcode': {
-                'series': [hard, medium, easy],
+                'series': [hard, medium, easy ],
                 'labels': ["Hard", "Medium", "Easy"],
             },
             'stackgraph': {
