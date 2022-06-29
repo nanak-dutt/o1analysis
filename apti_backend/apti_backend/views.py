@@ -372,8 +372,9 @@ def analytics(request):
             'total': achieved_score,
             'subject': true_subject,
             'leetcode': {
-                'series': [hard, medium, easy, total_for_leetcode],
-                'labels': ["Hard", "Medium", "Easy", "Total"],
+                'series': [hard, medium, easy],
+                'labels': ["Hard", "Medium", "Easy"],
+                'total' : total_for_leetcode
             },
             'stackgraph': {
                 'series': [
