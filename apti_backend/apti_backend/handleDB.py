@@ -228,7 +228,7 @@ def get_subject_ranklist(subject):
 				user_rank_data = {
 					'name': data['name'],
 					'college': data['college'],
-					'marks': marks
+					'total_marks': marks
 				}
 				my_list.append(user_rank_data)
 
