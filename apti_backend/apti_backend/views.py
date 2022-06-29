@@ -440,8 +440,8 @@ def collegeranklist(request):
 def subjectranklist(request):
     """
     {
-        "email":  "demouser7@gmail.com"
-        "subject" : "dbms"
+        "email":  "rr@gmail.com",
+        "subject" : "overall"
     }
     """
     data = {}
