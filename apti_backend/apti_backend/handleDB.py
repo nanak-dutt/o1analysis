@@ -129,7 +129,7 @@ def check_analytics_exist(uid):
 		if (user.exists):
 			user = user.to_dict()
 			if user.get("level_wise_distribution") and user.get("scores") and user.get("topic_wise_distribution") and user.get("total_score"):
-				return 1
+				return 0
 		return 0
 	except:
 		print("ERROR IN CHECK_ANALYTICS_EXIST")

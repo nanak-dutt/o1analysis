@@ -304,6 +304,7 @@ def analytics(request):
         correct = []
         incorrect = []
         hard = medium = easy = achieved_score = 0
+        total_easy = total_medium = total_hard = 0
 
         true_subject = ""
         if (subject == 'overall'):
@@ -331,6 +332,10 @@ def analytics(request):
                 hard += innerdata['hard'][1]
                 medium += innerdata['medium'][1]
                 easy += innerdata['easy'][1]
+                ### counting total easy, medium, hard questions
+                total_hard += innerdata['hard'][0]
+                total_medium += innerdata['medium'][0]
+                total_easy += innerdata['easy'][0]
 
                 correct.append(innerdata['hard'][1] + innerdata['medium'][1] + innerdata['easy'][1])
                 incorrect.append(innerdata['hard'][2] + innerdata['medium'][2] + innerdata['easy'][2])
@@ -339,6 +344,11 @@ def analytics(request):
             hard = data['level_wise_distribution'][subject]['hard'][1]
             medium = data['level_wise_distribution'][subject]['medium'][1]
             easy = data['level_wise_distribution'][subject]['easy'][1]
+            
+            total_hard = data['level_wise_distribution'][subject]['hard'][0]
+            total_medium = data['level_wise_distribution'][subject]['medium'][0]
+            total_easy = data['level_wise_distribution'][subject]['easy'][0]
+            
             achieved_score = data['scores'][subject]
 
             for topic in data['topic_wise_distribution'][subject]:
@@ -352,13 +362,18 @@ def analytics(request):
         for i in incorrect:
             Negative_Incorrects.append(-1 * i)
 
+        
+        hard=(hard*100)/total_hard
+        medium=(medium*100)/total_medium
+        easy=(easy*100)/total_easy
+        total_for_leetcode=(hard+medium+easy)/3
         returndata = {
             'name': name,
             'total': achieved_score,
             'subject': true_subject,
             'leetcode': {
-                'series': [hard, medium, easy ],
-                'labels': ["Hard", "Medium", "Easy"],
+                'series': [hard, medium, easy, total_for_leetcode],
+                'labels': ["Hard", "Medium", "Easy", "Total"],
             },
             'stackgraph': {
                 'series': [
