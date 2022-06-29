@@ -228,12 +228,13 @@ def get_subject_ranklist(subject):
 				user_rank_data = {
 					'name': data['name'],
 					'college': data['college'],
-					'total_marks': marks
-				}
+					'total_score': marks
+				} 
 				my_list.append(user_rank_data)
 
-	my_list = sorted(my_list, key=lambda k: k['marks'], reverse=True)
+	my_list = sorted(my_list, key=lambda k: k['total_score'], reverse=True)
 	i = 1
+	# print(my_list)
 	for user in my_list:
 		user['rank'] = i
 		i += 1
