@@ -184,7 +184,7 @@ def get_global_ranklist():
 		data.pop("level_wise_distribution")
 		data.pop("topic_wise_distribution")
 		data["rank"] = i
-		data["marks"] = data.pop("total_score")
+		data["total_score"] = data.pop("total_score")
 		i += 1
 		lst.append(data)
 
@@ -196,11 +196,14 @@ def get_college_ranklist(college):
 	query = users_ref.order_by(u'total_score', direction=firestore.Query.DESCENDING).stream()
 
 	lst = []
+	i = 1
 	for doc in query:
 		data = doc.to_dict()
 		data.pop("level_wise_distribution")
 		data.pop("topic_wise_distribution")
-		data.pop("college")
+		data["rank"] = i
+		i += 1
+		# data.pop("college")
 		lst.append(data)
 
 	i = 1
@@ -225,12 +228,13 @@ def get_subject_ranklist(subject):
 				user_rank_data = {
 					'name': data['name'],
 					'college': data['college'],
-					'marks': marks
-				}
+					'total_score': marks
+				} 
 				my_list.append(user_rank_data)
 
-	my_list = sorted(my_list, key=lambda k: k['marks'], reverse=True)
+	my_list = sorted(my_list, key=lambda k: k['total_score'], reverse=True)
 	i = 1
+	# print(my_list)
 	for user in my_list:
 		user['rank'] = i
 		i += 1

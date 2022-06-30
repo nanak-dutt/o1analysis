@@ -304,6 +304,7 @@ def analytics(request):
         correct = []
         incorrect = []
         hard = medium = easy = achieved_score = 0
+        total_easy = total_medium = total_hard = 0
 
         true_subject = ""
         if (subject == 'overall'):
@@ -328,23 +329,32 @@ def analytics(request):
                 subject_scores.append(data['scores'][sub])
 
                 innerdata = data['level_wise_distribution'][sub]
-                hard += innerdata['hard'][0]
-                medium += innerdata['medium'][0]
-                easy += innerdata['easy'][0]
+                hard += innerdata['hard'][1]
+                medium += innerdata['medium'][1]
+                easy += innerdata['easy'][1]
+                ### counting total easy, medium, hard questions
+                total_hard += innerdata['hard'][0]
+                total_medium += innerdata['medium'][0]
+                total_easy += innerdata['easy'][0]
 
                 correct.append(innerdata['hard'][1] + innerdata['medium'][1] + innerdata['easy'][1])
                 incorrect.append(innerdata['hard'][2] + innerdata['medium'][2] + innerdata['easy'][2])
         else:
             # can't calculate topic scores individually
-            hard = data['level_wise_distribution'][subject]['hard'][0]
-            medium = data['level_wise_distribution'][subject]['medium'][0]
-            easy = data['level_wise_distribution'][subject]['easy'][0]
+            hard = data['level_wise_distribution'][subject]['hard'][1]
+            medium = data['level_wise_distribution'][subject]['medium'][1]
+            easy = data['level_wise_distribution'][subject]['easy'][1]
+            
+            total_hard = data['level_wise_distribution'][subject]['hard'][0]
+            total_medium = data['level_wise_distribution'][subject]['medium'][0]
+            total_easy = data['level_wise_distribution'][subject]['easy'][0]
+            
             achieved_score = data['scores'][subject]
 
             for topic in data['topic_wise_distribution'][subject]:
                 subject_labels.append(topic)
-                subject_scores.append(-1)
                 innerdata = data['topic_wise_distribution'][subject][topic]
+                subject_scores.append(innerdata[3])
                 correct.append(innerdata[1])
                 incorrect.append(innerdata[2])
 
@@ -352,6 +362,11 @@ def analytics(request):
         for i in incorrect:
             Negative_Incorrects.append(-1 * i)
 
+        
+        hard=(hard*100)/total_hard
+        medium=(medium*100)/total_medium
+        easy=(easy*100)/total_easy
+        total_for_leetcode=(hard+medium+easy)/3
         returndata = {
             'name': name,
             'total': achieved_score,
@@ -359,6 +374,7 @@ def analytics(request):
             'leetcode': {
                 'series': [hard, medium, easy],
                 'labels': ["Hard", "Medium", "Easy"],
+                'total' : total_for_leetcode
             },
             'stackgraph': {
                 'series': [
@@ -425,8 +441,8 @@ def collegeranklist(request):
 def subjectranklist(request):
     """
     {
-        "email":  "demouser7@gmail.com"
-        "subject" : "dbms"
+        "email":  "rr@gmail.com",
+        "subject" : "overall"
     }
     """
     data = {}
