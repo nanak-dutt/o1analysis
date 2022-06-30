@@ -108,11 +108,21 @@ def get_test_link():
 	return testlink
 
 
-def get_global_ranklist():
+def get_global_ranklist(subject = None):
+	if subject == "overall":
+		user_data = user_collection.find({"total_score":{"$ne": None}}).sort("total_score", -1)
+	else:
+		user_data = user_collection.find({"scores":{"$ne": None}}).sort("scores.{subj}".format(subj = subject), -1)
+
 	data = []
 	rank = 0
-	for user in user_collection.find().sort("total_score", -1):
-		if len(data) > 0 and user.get("total_score") == data[-1].get("total_score"):
+	for user in user_data:
+		if subject == "overall":
+			score = user.get("total_score")
+		else:
+			score = user.get("scores").get(subject)
+
+		if len(data) > 0 and score == data[-1].get("total_score"):
 			pass
 		else:
 			rank += 1
@@ -122,19 +132,28 @@ def get_global_ranklist():
 			"email": user.get("email"),
 			"college": user.get("college"),
 			"mobile": user.get("mobile"),
-			"total_score": user.get("total_score"),
+			"total_score": score,
 			"rank": rank
 		})
 
-	print(data)
 	return data
 
 
-def get_college_ranklist(college):
+def get_college_ranklist(college, subject = None):
+	if subject == "overall":
+		user_data = user_collection.find({"total_score":{"$ne": None}, "college":college}).sort("total_score", -1)
+	else:
+		user_data = user_collection.find({"scores":{"$ne": None}, "college":college}).sort("scores.{subj}".format(subj = subject), -1)
+
 	data = []
 	rank = 0
-	for user in user_collection.find({"college" : college}).sort("total_score", -1):
-		if len(data) > 0 and user.get("total_score") == data[-1].get("total_score"):
+	for user in user_data:
+		if subject == "overall":
+			score = user.get("total_score")
+		else:
+			score = user.get("scores").get(subject)
+
+		if len(data) > 0 and score == data[-1].get("total_score"):
 			pass
 		else:
 			rank += 1
@@ -144,11 +163,10 @@ def get_college_ranklist(college):
 			"email": user.get("email"),
 			"college": user.get("college"),
 			"mobile": user.get("mobile"),
-			"total_score": user.get("total_score"),
+			"total_score": score,
 			"rank": rank
 		})
 
-	print(data)
 	return data
 
 
@@ -159,30 +177,3 @@ def update_scored_db(email, totalscore, scores):
 
 	res = user_collection.update_one({"email" : email}, { "$set": { "total_score":totalscore, "scores" : scores } })
 	return 1
-
-
-def get_subject_ranklist(subject):
-	my_list = []
-
-	users = db.collection("user").get()
-	for user in users:
-		data = user.to_dict()
-		if 'scores' in data.keys():
-			scores = data['scores']
-			if subject in scores.keys():
-				marks = data['scores'][subject]
-				user_rank_data = {
-					'name': data['name'],
-					'college': data['college'],
-					'total_score': marks
-				}
-				my_list.append(user_rank_data)
-
-	my_list = sorted(my_list, key=lambda k: k['total_score'], reverse=True)
-	i = 1
-	# print(my_list)
-	for user in my_list:
-		user['rank'] = i
-		i += 1
-
-	return my_list

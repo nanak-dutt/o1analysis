@@ -32,8 +32,8 @@ urlpatterns = [
     # path('auth/login', views.login),
 	path('get_test_analysis', views.analytics),
 
-	path('ranklist/college', views.collegeranklist),
-	path('ranklist/global', views.globalranklist),
+	# path('ranklist/college', views.collegeranklist),
+	# path('ranklist/global', views.globalranklist),
 	path('ranklist/subject_ranklist', views.subjectranklist),
 
 	path('weak_topic' , views.weakest_topics),

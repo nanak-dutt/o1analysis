@@ -433,29 +433,22 @@ def subjectranklist(request):
         "subject" : "overall"
     }
     """
-    data = {}
     serializer = AnalysisSerializer(data = request.data)
     if serializer.is_valid():
         email = serializer.data['email']
         subject = serializer.data['subject']
-        user_id = email.split("@")[0]
+
         data = get_user_data(email)
         college = data['college']
-        if subject == "overall":
-            lst = get_global_ranklist()
-            lst1 = get_college_ranklist(college)
-        else:
-            lst = get_subject_ranklist(subject)
 
-        data = {}
-        if subject == "overall":
-            data["globalRanklist"] = lst
-            data["collegeRanklist"] = lst1
-        else:
-            data["globalRanklist"] = lst
+        data = {
+            "globalRanklist" : get_global_ranklist(subject),
+            "collegeRanklist" : get_college_ranklist(college, subject)
+        }
+
         return Response(data, status=status.HTTP_200_OK)
 
-    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+    return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
