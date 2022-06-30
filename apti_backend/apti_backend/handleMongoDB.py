@@ -153,10 +153,12 @@ def get_college_ranklist(college):
 
 
 def update_scored_db(email, totalscore, scores):
-	res = user_collection.update_one({"email" : email}, { "$set": { "total_score":totalscore, "scores" : scores } })
-	if res.modified_count == 0:
+	if user_collection.find_one({"email" : email}) is None:
 		print("No user found to update db")
 		return -1
+
+	res = user_collection.update_one({"email" : email}, { "$set": { "total_score":totalscore, "scores" : scores } })
+	return 1
 
 
 def get_subject_ranklist(subject):

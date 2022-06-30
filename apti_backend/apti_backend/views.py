@@ -272,6 +272,7 @@ def analytics(request):
         subject = serializer.data['subject']
 
         user = get_user_data(email)
+
         # user does not exist
         if user is None:
             return Response("NO USER FOUND", status=status.HTTP_404_NOT_FOUND)
