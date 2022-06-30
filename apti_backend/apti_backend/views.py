@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 
-from .handleDB import *
+from .handleMongoDB import *
 from .serializers import *
 
 
@@ -34,28 +34,19 @@ def register(request):
         }
 
         user_id = data["email"].split("@")[0]
-
-        if check_id_exist(user_id) != 0:
-            print("EMAIL ALREADY EXIST")
-            return Response("EMAIL ALREADY EXIST", status=status.HTTP_400_BAD_REQUEST)
-
-        if check_college_exist(college) != 1:
-            print("COLLEGE DOES NOT EXIST")
-            return Response("COLLEGE DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
-
         collegekey = get_college_key(college)
 
         if (collegekey == -1):
-            print("KEY FINDING ERROR")
-            return Response("KEY FINDING ERROR", status=status.HTTP_401_UNAUTHORIZED)
+            print("COLLEGE DOES NOT EXIST")
+            return Response("COLLEGE DOES NOT EXIST", status=status.HTTP_400_BAD_REQUEST)
 
         if (key == collegekey):
             print("MATCHED")
-            res = create_user(user_data, user_id)
+            res = create_user(user_data)
 
             if res != 1:
-                print("ERROR IN PUSHING USER DATA TO DB")
-                return Response("ERROR IN PUSHING USER DATA TO DB", status=status.HTTP_401_UNAUTHORIZED)
+                print("EMAIL ALREADY EXIST")
+                return Response("EMAIL ALREADY EXIST", status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response("REGISTERED SUCCESSFULLY", status=status.HTTP_201_CREATED)
         else:
@@ -65,16 +56,16 @@ def register(request):
     else:
         return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
 
-
+"""
 @api_view(['POST'])
 def login(request):
-    """
+    ""
     {
         "email": "demouser8@gmail.com",
         "college": "Yeshwantrao Chavan College of Engineering",
         "key": "YCCE"
     }
-    """
+    ""
     serializer = UserLoginSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -85,6 +76,7 @@ def login(request):
         key = data['key']
 
         user_id = email.split("@")[0]
+
         if (check_id_exist(user_id) != 1):
             print("EMAIL DOES NOT EXIST")
             return Response("EMAIL DOES NOT EXIST", status=status.HTTP_401_UNAUTHORIZED)
@@ -95,6 +87,7 @@ def login(request):
             return Response("WRONG COLLEGE NAME", status=status.HTTP_401_UNAUTHORIZED)
 
         collegekey = get_college_key(college)
+
         if (collegekey == -1):
             print("KEY FINDING ERROR")
             return Response("KEY FINDING ERROR", status=status.HTTP_401_UNAUTHORIZED)
@@ -107,10 +100,10 @@ def login(request):
 
     else:
         return Response("INVALID DATA", status=status.HTTP_400_BAD_REQUEST)
-
+"""
 
 # helper function to generate analytics
-def generate_test_analysis(email, uid):
+def generate_test_analysis(email):
     correct_answers = get_correct_answers()
     user_responses = get_user_responses(email)
 
@@ -122,7 +115,6 @@ def generate_test_analysis(email, uid):
     level_wise_distribution = {}
     topic_wise_distribution = {}
     total_score = 0
-
 
     # evaluating first 100 ques ... that is except language ques
     for question_no in correct_answers:
@@ -254,16 +246,16 @@ def generate_test_analysis(email, uid):
             level_wise_distribution[subject][difficulty][0] += 1
             topic_wise_distribution[subject][topic][0] += 1
 
-    res = update_scored_db(total_score, scores, level_wise_distribution, topic_wise_distribution, uid)
+    res = update_scored_db(email, total_score, scores)
     if res == -1:
+        print("Email:", email, "\n")
         print("Total Score:", total_score, "\n")
         print("Scores:", scores, "\n")
         print("level_wise_distribution:", level_wise_distribution, "\n")
         print("topic_wise_distribution:", topic_wise_distribution, "\n")
-        print("uid:", uid, "\n")
         return -1
 
-    return 1
+    return [total_score, scores, level_wise_distribution, topic_wise_distribution]
 
 
 @api_view(['POST'])
@@ -278,27 +270,23 @@ def analytics(request):
     if serializer.is_valid():
         email = serializer.data['email']
         subject = serializer.data['subject']
-        user_id = email.split("@")[0]
 
-        # check if email exist
-        if check_id_exist(user_id) != 1:
+        user = get_user_data(email)
+        # user does not exist
+        if user is None:
             return Response("NO USER FOUND", status=status.HTTP_404_NOT_FOUND)
 
-        res = check_analytics_exist(user_id)
+        print("GENERATING ANALYTICS")
+        result = generate_test_analysis(email)
 
-        # analytics not generated
-        if res != 1:
-            print("GENERATING ANALYTICS")
-            result = generate_test_analysis(email, user_id)
-            print(result)
-            if result == -1:
-                return Response("USER NOT SUBMITTED THE TEST", status=status.HTTP_404_NOT_FOUND)
-            else:
-                print("ANALYTICS GENERATED SUCCESSFULLY")
+        if result == -1:
+            return Response("USER NOT SUBMITTED THE TEST", status=status.HTTP_404_NOT_FOUND)
+        else:
+            print("ANALYTICS GENERATED SUCCESSFULLY")
 
         ############# RETURNING JSON RESPONSE ///// ANALYSIS DATA
-        data = get_user_data(email)
-        name = data['name']
+        total_score, scores, level_wise_distribution, topic_wise_distribution = result
+        name = user.get("name")
         subject_scores = []
         subject_labels = []
         correct = []
@@ -323,50 +311,49 @@ def analytics(request):
             true_subject = subject
 
         if (subject == 'overall'):
-            achieved_score = data['total_score']
-            for sub in data['level_wise_distribution']:
+            achieved_score = total_score
+            for sub in level_wise_distribution:
                 subject_labels.append(sub)
-                subject_scores.append(data['scores'][sub])
+                subject_scores.append(scores[sub])
 
-                innerdata = data['level_wise_distribution'][sub]
-                hard += innerdata['hard'][1]
-                medium += innerdata['medium'][1]
-                easy += innerdata['easy'][1]
+                hard += level_wise_distribution[sub]['hard'][1]
+                medium += level_wise_distribution[sub]['medium'][1]
+                easy += level_wise_distribution[sub]['easy'][1]
+
                 ### counting total easy, medium, hard questions
-                total_hard += innerdata['hard'][0]
-                total_medium += innerdata['medium'][0]
-                total_easy += innerdata['easy'][0]
+                total_hard += level_wise_distribution[sub]['hard'][0]
+                total_medium += level_wise_distribution[sub]['medium'][0]
+                total_easy += level_wise_distribution[sub]['easy'][0]
 
-                correct.append(innerdata['hard'][1] + innerdata['medium'][1] + innerdata['easy'][1])
-                incorrect.append(innerdata['hard'][2] + innerdata['medium'][2] + innerdata['easy'][2])
+                correct.append(level_wise_distribution[sub]['hard'][1] + level_wise_distribution[sub]['medium'][1] + level_wise_distribution[sub]['easy'][1])
+                incorrect.append(level_wise_distribution[sub]['hard'][2] + level_wise_distribution[sub]['medium'][2] + level_wise_distribution[sub]['easy'][2])
         else:
             # can't calculate topic scores individually
-            hard = data['level_wise_distribution'][subject]['hard'][1]
-            medium = data['level_wise_distribution'][subject]['medium'][1]
-            easy = data['level_wise_distribution'][subject]['easy'][1]
-            
-            total_hard = data['level_wise_distribution'][subject]['hard'][0]
-            total_medium = data['level_wise_distribution'][subject]['medium'][0]
-            total_easy = data['level_wise_distribution'][subject]['easy'][0]
-            
-            achieved_score = data['scores'][subject]
+            hard = level_wise_distribution[subject]['hard'][1]
+            medium = level_wise_distribution[subject]['medium'][1]
+            easy = level_wise_distribution[subject]['easy'][1]
 
-            for topic in data['topic_wise_distribution'][subject]:
+            total_hard = level_wise_distribution[subject]['hard'][0]
+            total_medium = level_wise_distribution[subject]['medium'][0]
+            total_easy = level_wise_distribution[subject]['easy'][0]
+
+            achieved_score = scores[subject]
+
+            for topic in topic_wise_distribution[subject]:
                 subject_labels.append(topic)
-                innerdata = data['topic_wise_distribution'][subject][topic]
-                subject_scores.append(innerdata[3])
-                correct.append(innerdata[1])
-                incorrect.append(innerdata[2])
+                subject_scores.append(topic_wise_distribution[subject][topic][3])
+                correct.append(topic_wise_distribution[subject][topic][1])
+                incorrect.append(topic_wise_distribution[subject][topic][2])
 
         Negative_Incorrects = []
         for i in incorrect:
             Negative_Incorrects.append(-1 * i)
 
-        
-        hard=(hard*100)/total_hard
-        medium=(medium*100)/total_medium
-        easy=(easy*100)/total_easy
-        total_for_leetcode=(hard+medium+easy)/3
+        hard = (hard*100)/total_hard
+        medium = (medium*100)/total_medium
+        easy = (easy*100)/total_easy
+        total_for_leetcode = (hard+medium+easy)/3
+
         returndata = {
             'name': name,
             'total': achieved_score,
@@ -404,7 +391,7 @@ def analytics(request):
             },
         }
 
-        return Response(returndata)
+        return Response(returndata, status = status.HTTP_200_OK)
     else:
         return Response("Invalid data", status=status.HTTP_400_BAD_REQUEST)
 
