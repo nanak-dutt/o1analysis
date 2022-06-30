@@ -350,10 +350,11 @@ def analytics(request):
         for i in incorrect:
             Negative_Incorrects.append(-1 * i)
 
-        hard = (hard*100)/total_hard
-        medium = (medium*100)/total_medium
-        easy = (easy*100)/total_easy
-        total_for_leetcode = (hard+medium+easy)/3
+       # hard = (hard*100)/total_hard
+        # medium = (medium*100)/total_medium
+        # easy = (easy*100)/total_easy
+        user_total_for_leetcode = hard+medium+easy
+        total_for_leetcode = total_hard+total_easy+total_medium
 
         returndata = {
             'name': name,
@@ -361,8 +362,9 @@ def analytics(request):
             'subject': true_subject,
             'leetcode': {
                 'series': [hard, medium, easy],
+                'total_series':[total_hard,total_medium,total_easy],
                 'labels': ["Hard", "Medium", "Easy"],
-                'total' : total_for_leetcode
+                'total' : [user_total_for_leetcode,total_for_leetcode]
             },
             'stackgraph': {
                 'series': [
@@ -391,7 +393,6 @@ def analytics(request):
                 'labels': subject_labels,
             },
         }
-
         return Response(returndata, status = status.HTTP_200_OK)
     else:
         return Response("Invalid data", status=status.HTTP_400_BAD_REQUEST)
