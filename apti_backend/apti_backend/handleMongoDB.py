@@ -1,7 +1,7 @@
 import pymongo
 import gspread
 
-client = pymongo.MongoClient("mongodb+srv://rishabh_rathi:qlMw1iYnur59VgCH@knowyourprep.kocnybk.mongodb.net/?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://rishabh_rathi:qlMw1iYnur59VgCH@knowyourprep.kocnybk.mongodb.net/?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE")
 db = client["o1apti"]
 
 college_collection = db["colleges"]

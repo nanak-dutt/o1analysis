@@ -13,7 +13,7 @@ def register(request):
     """
     {
         "name": "Demo User8",
-        "email": "demouser8@gmail.com",
+        "email": "rr@gmail.com",
         "college": "Yeshwantrao Chavan College of Engineering",
         "key": "YCCE",
         "mobile": 8888888888
@@ -61,7 +61,7 @@ def register(request):
 def login(request):
     ""
     {
-        "email": "demouser8@gmail.com",
+        "email": "rr@gmail.com",
         "college": "Yeshwantrao Chavan College of Engineering",
         "key": "YCCE"
     }
@@ -262,7 +262,7 @@ def generate_test_analysis(email):
 def analytics(request):
     """
     {
-        "email": "demouser6@gmail.com",
+        "email": "rr@gmail.com",
         "subject" : "overall"
     }
     """
@@ -350,19 +350,13 @@ def analytics(request):
         for i in incorrect:
             Negative_Incorrects.append(-1 * i)
 
-        hard = (hard*100)/total_hard
-        medium = (medium*100)/total_medium
-        easy = (easy*100)/total_easy
-        total_for_leetcode = (hard+medium+easy)/3
-
         returndata = {
             'name': name,
             'total': achieved_score,
             'subject': true_subject,
             'leetcode': {
-                'series': [hard, medium, easy],
-                'labels': ["Hard", "Medium", "Easy"],
-                'total' : total_for_leetcode
+                'series': [[hard, total_hard], [medium, total_medium], [easy, total_easy]],
+                'labels': ["Hard", "Medium", "Easy"]
             },
             'stackgraph': {
                 'series': [
@@ -473,100 +467,57 @@ def college_list(request):
 def weakest_topics(request):
     """
     {
-        "email" : "demouser6@gmail.com"
+        "email" : "rr@gmail.com"
     }
     """
     serializer = EmailSerializer(data=request.data)
     if serializer.is_valid():
         ser_data = serializer.data
         email = ser_data['email']
-        user_id = email.split("@")[0]
+
+        max_scores = {
+            'dsa': 36,
+            'oops': 38,
+            'os': 60,
+            'cn': 60,
+            'dbms': 78,
+            'quantitative': 36,
+            'logical': 48,
+            'verbal': 36,
+            'c': 38,
+            'c++': 38,
+            'java': 38,
+            'python': 38
+        }
 
         user_data = get_user_data(email)
+        scores = user_data["scores"]
 
-        subject_list = []
-        topic_list = []
+        weak_subjects = []
+        for subject in scores.keys():
+            if(subject in max_scores.keys()):
+                user_score = scores[subject]
+                max_score = max_scores[subject]
+                score_85 = 0.85*max_score
+                if(user_score < score_85):
+                    weak_subjects.append(subject)
 
-        if 'topic_wise_distribution' not in user_data.keys():
-            return Response("NO TEST GIVEN YET", status=status.HTTP_400_BAD_REQUEST)
-
-        # calculating 85% score benchmark from any random topic
-        questions = db.collection("ques_bank").get()
-        question1 = questions[0].to_dict()
-
-        question1_subject = question1['subject']
-        question1_topic = question1['topic']
-
-        topic_questions = db.collection("ques_bank").where(u'subject', u'==', question1_subject).where(u'topic', u'==', question1_topic).get()
-
-        score = 0
-        for question in topic_questions:
-            dict = question.to_dict()
-
-            if(dict['level']=='easy'):
-                score += 2
-            elif(dict['level']=='medium'):
-                score += 4
-            elif(dict['level']=='hard'):
-                score += 6
-
-        score_85 = score*0.85
-        print(score_85)
-
-        subjects = user_data["topic_wise_distribution"]
-
-        for subject in subjects.keys():
-            topics = subjects[subject]
-
-            var = score_85
-            weak_topic = ""
-
-            for topic in topics.keys():
-                mark = topics[topic][0]
-                if (mark < var):
-                    var = mark
-                    weak_topic = topic
-
-            # if there is no weak topic in subject, subject will not be added
-            if(weak_topic != ""):
-                subject_list.append(subject)
-                topic_list.append(weak_topic)
-
-        print(subject_list)
-        print(topic_list)
-
-        core_topic=""
-        core_subject=""
-        sde_bootcamp_topic=""
-        sde_bootcamp_subject=""
-        apti_topic=""
-        apti_subject=""
-
-        sz = len(subject_list)
-
-        for i in range(0, sz):
-            subject = subject_list[i]
-            topic = topic_list[i]
-
+        core_subject = sde_bootcamp_subject = apti_subject = ""
+        for subject in weak_subjects:
             if(subject=='oops' or subject=='os' or subject=='cn' or subject=='dbms' ):
-                core_topic = topic
                 core_subject = subject
-            elif(subject=='dsa'):
-                sde_bootcamp_topic = topic
+            elif(subject=='dsa' or subject=='c' or subject=='c++' or subject=='java' or subject=='python'):
                 sde_bootcamp_subject = subject
             elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
-                apti_topic = topic
                 apti_subject = subject
 
         data = {}
-        if(core_topic != "" and core_subject!=""):
-            data['core'] = core_topic + " is weakest topic of " + core_subject
-
-        if(sde_bootcamp_topic != "" and sde_bootcamp_subject!=""):
-            data['sde_bootcamp'] = sde_bootcamp_topic + " is weakest topic of " + sde_bootcamp_subject
-
-        if(apti_topic != "" and apti_subject!=""):
-            data['apti'] = apti_topic + " is weakest topic of " + apti_subject
+        if(core_subject!=""):
+            data['core'] = core_subject
+        if(sde_bootcamp_subject!=""):
+            data['sde_bootcamp'] = sde_bootcamp_subject
+        if(apti_subject!=""):
+            data['apti'] = apti_subject
 
         return Response(data, status=status.HTTP_200_OK)
 
