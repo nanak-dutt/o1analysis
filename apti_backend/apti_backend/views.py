@@ -505,7 +505,7 @@ def weakest_topics(request):
 
         for subject in scores.keys():
             
-            if(subject in max_score.keys()):
+            if(subject in max_scores.keys()):
                 user_score = scores[subject]
                 max_score = max_scores[subject]
                 score_85 = 0.85*max_score
