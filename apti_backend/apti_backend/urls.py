@@ -24,7 +24,7 @@ urlpatterns = [
 	path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
 	# path('quesbank', views.question_bank),
-	path('college_list' , views.college_list),
+	path('college_list/' , views.college_list),
 	path('testlink', views.test_link),
 
 	# authentication - register & login
