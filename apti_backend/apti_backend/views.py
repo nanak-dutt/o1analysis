@@ -488,9 +488,7 @@ def weakest_topics(request):
             'os': 60,
             'cn': 60,
             'dbms': 78,
-            'quantitative': 36,
-            'logical': 48,
-            'verbal': 36,
+            'general aptitude' : 120,
             'c': 38,
             'c++': 38,
             'java': 38,
@@ -513,7 +511,7 @@ def weakest_topics(request):
                 if(user_score<score_85):
                     weak_subjects.append(subject)
 
-        print(weak_subjects)
+
 
         core_subject=""
         sde_bootcamp_subject=""
@@ -524,11 +522,10 @@ def weakest_topics(request):
                 core_subject = subject
             elif(subject=='dsa' or subject=='c' or subject=='c++' or subject=='java' or subject=='python'):
                 sde_bootcamp_subject = subject
-            elif(subject=='verbal' or subject=='quantitative' or subject=='logical'):
+            elif(subject=='general aptitude'):
                 apti_subject = subject
 
         data = {}
-        
         if(core_subject!=""):
             data['core'] = core_subject
 
