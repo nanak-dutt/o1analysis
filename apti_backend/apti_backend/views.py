@@ -13,7 +13,7 @@ def register(request):
     """
     {
         "name": "Demo User8",
-        "email": "demouser8@gmail.com",
+        "email": "rr@gmail.com",
         "college": "Yeshwantrao Chavan College of Engineering",
         "key": "YCCE",
         "mobile": 8888888888
@@ -61,7 +61,7 @@ def register(request):
 def login(request):
     ""
     {
-        "email": "demouser8@gmail.com",
+        "email": "rr@gmail.com",
         "college": "Yeshwantrao Chavan College of Engineering",
         "key": "YCCE"
     }
@@ -510,8 +510,6 @@ def weakest_topics(request):
                 
                 if(user_score<score_85):
                     weak_subjects.append(subject)
-
-
 
         core_subject=""
         sde_bootcamp_subject=""
