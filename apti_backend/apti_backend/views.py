@@ -442,9 +442,19 @@ def subjectranklist(request):
         data = get_user_data(email)
         college = data['college']
 
+        globallist = get_global_ranklist(subject)
+        collegelist = get_college_ranklist(college, subject)
+        
+        user_global_info = list(filter(lambda person: person['email'] == email , globallist))
+        user_college_info = list(filter(lambda person: person['email'] ==email, collegelist))
+        ugi = user_global_info[0]
+        uci = user_college_info[0]
+        globallist.insert(0 , ugi)
+        collegelist.insert(0 ,uci)
+
         data = {
-            "globalRanklist" : get_global_ranklist(subject),
-            "collegeRanklist" : get_college_ranklist(college, subject)
+            "globalRanklist" : globallist,
+            "collegeRanklist" : collegelist
         }
 
         return Response(data, status=status.HTTP_200_OK)
